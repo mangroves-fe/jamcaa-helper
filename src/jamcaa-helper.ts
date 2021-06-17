@@ -1,41 +1,78 @@
-import { getRepository, EntityTarget, Repository, FindConditions } from 'typeorm'
+import { getRepository, Repository } from 'typeorm'
 import { DEFAULT_JAMCAA_OPTIONS } from './constants'
 import { IJamcaaHelperOptions } from './interfaces'
-import { pick } from './utils'
+import { ListQuery } from './list-query'
 
-export class JamcaaHelper<Entity extends Record<string, any>> {
+export class JamcaaHelper<
+  Entity extends Record<string, any>,
+  UniqueKeys extends keyof Entity,
+> {
   private readonly repository: Repository<Entity>
 
   private readonly options: IJamcaaHelperOptions
 
-  constructor (private readonly entityClass: EntityTarget<Entity>, options: Partial<IJamcaaHelperOptions>, connectionName?: string) {
+  constructor (
+    private readonly entityClass: { new (): Entity },
+    private readonly uniqueKeys: UniqueKeys[],
+    options: Partial<IJamcaaHelperOptions>,
+    connectionName?: string,
+  ) {
     this.repository = getRepository(entityClass, connectionName)
     this.options = Object.assign({}, DEFAULT_JAMCAA_OPTIONS, options)
   }
 
-  async createInsertQuery (partialEntity: Partial<Entity>, uniqueKeys: Array<keyof Entity>, operator: string): Promise<Entity> {
+  async createInsertQuery (
+    partialEntity: Record<UniqueKeys, any> & Partial<Entity>,
+    operator: string,
+  ): Promise<Entity> {
     // Check if the entity already exists
-    await this.createGetQuery(pick<Partial<Entity>>(partialEntity, uniqueKeys), true)
+    const uniqueKeyConditions: Record<UniqueKeys, any> = {} as Record<UniqueKeys, any>
+    this.uniqueKeys.forEach((key) => {
+      uniqueKeyConditions[key] = partialEntity[key]
+    })
+    const existingEntity = await this.createGetQuery(uniqueKeyConditions, true)
+    if (this.options.softDelete && existingEntity && existingEntity[this.options.softDeleteField] === this.options.softDeleteEnum[0]) {
+      // todo: Not found exception
+      throw new Error()
+    }
 
     // If soft deleted data should be reused
-  }
-  
-  createListQuery () {
-    // Deal with soft deleted
-  }
-
-  async createGetQuery (uniqueKeyConditions: FindConditions<Entity>, showDeleted?: boolean): Promise<Entity | undefined> {
-    const where: FindConditions<Entity> = {
-      ...uniqueKeyConditions,
+    const insertEntity = this.options.softDelete && this.options.reuseSoftDeletedData && existingEntity ? existingEntity : new this.entityClass()
+    for (const key in partialEntity) {
+      const value = partialEntity[key] as Entity[keyof Entity]
+      insertEntity[key as keyof Entity] = value
+    }
+    if (this.options.softDelete && this.options.reuseSoftDeletedData) {
+      insertEntity[this.options.softDeleteField as keyof Entity] = this.options.softDeleteEnum[0]
     }
 
-    if (this.options.softDelete) {
-      Object.assign(where, {
-        [this.options.softDeleteField]: showDeleted ? this.options.softDeleteEnum[1] : this.options.softDeleteEnum[0],
+    // Operator
+
+    // Create time and update time
+
+    return await this.repository.save(insertEntity)
+  }
+
+  createListQuery (): ListQuery<Entity> {
+    return new ListQuery(
+      this.repository.createQueryBuilder(),
+      this.options.maxUnspecifiedPageSize,
+      this.options.softDelete,
+      this.options.softDeleteField,
+      this.options.softDeleteEnum,
+    )
+  }
+
+  async createGetQuery (uniqueKeyConditions: Record<UniqueKeys, any>, showDeleted?: boolean): Promise<Entity | undefined> {
+    return await this.createListQuery()
+      .filter((fq) => {
+        for (const key in uniqueKeyConditions) {
+          fq.equals(key, uniqueKeyConditions[key])
+        }
       })
-    }
-
-    return await this.repository.findOne({ where })
+      .showDeletedQuery(showDeleted)
+      .getQueryBuilder()
+      .getOne()
   }
 
   createUpdateQuery () {
