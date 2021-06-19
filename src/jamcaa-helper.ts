@@ -4,21 +4,30 @@ import { IJamcaaHelperOptions } from './interfaces'
 import { ListQuery } from './list-query'
 
 export class JamcaaHelper<
-  Entity extends Record<string, any>,
+  ExtraField extends string,
+  Entity extends Record<string & ExtraField, any>,
   UniqueKeys extends keyof Entity,
 > {
   private readonly repository: Repository<Entity>
 
-  private readonly options: IJamcaaHelperOptions
+  private readonly options: IJamcaaHelperOptions<ExtraField>
 
   constructor (
     private readonly entityClass: { new (): Entity },
     private readonly uniqueKeys: UniqueKeys[],
-    options: Partial<IJamcaaHelperOptions>,
+    options: Partial<IJamcaaHelperOptions<ExtraField>>,
     connectionName?: string,
   ) {
     this.repository = getRepository(entityClass, connectionName)
     this.options = Object.assign({}, DEFAULT_JAMCAA_OPTIONS, options)
+  }
+
+  private getUniqueKeyConditions (partialEntity: Record<UniqueKeys, any> & Partial<Entity>) {
+    const uniqueKeyConditions: Record<UniqueKeys, any> = {} as Record<UniqueKeys, any>
+    this.uniqueKeys.forEach((key) => {
+      uniqueKeyConditions[key] = partialEntity[key]
+    })
+    return uniqueKeyConditions
   }
 
   async createInsertQuery (
@@ -26,29 +35,62 @@ export class JamcaaHelper<
     operator: string,
   ): Promise<Entity> {
     // Check if the entity already exists
-    const uniqueKeyConditions: Record<UniqueKeys, any> = {} as Record<UniqueKeys, any>
-    this.uniqueKeys.forEach((key) => {
-      uniqueKeyConditions[key] = partialEntity[key]
-    })
-    const existingEntity = await this.createGetQuery(uniqueKeyConditions, true)
-    if (this.options.softDelete && existingEntity && existingEntity[this.options.softDeleteField] === this.options.softDeleteEnum[0]) {
+    const existingEntity = await this.createGetQuery(this.getUniqueKeyConditions(partialEntity), true)
+    if (this.options.softDelete) {
+      if (existingEntity && existingEntity[this.options.softDeleteField] === this.options.softDeleteEnum[0]) {
       // todo: Not found exception
+      throw new Error()
+    }
+    } else if (existingEntity) {
       throw new Error()
     }
 
     // If soft deleted data should be reused
     const insertEntity = this.options.softDelete && this.options.reuseSoftDeletedData && existingEntity ? existingEntity : new this.entityClass()
     for (const key in partialEntity) {
-      const value = partialEntity[key] as Entity[keyof Entity]
-      insertEntity[key as keyof Entity] = value
+      const value = partialEntity[key]
+      insertEntity[key] = value
     }
     if (this.options.softDelete && this.options.reuseSoftDeletedData) {
-      insertEntity[this.options.softDeleteField as keyof Entity] = this.options.softDeleteEnum[0]
+      insertEntity[this.options.softDeleteField] = this.options.softDeleteEnum[0]
     }
 
     // Operator
+    if (this.options.hasOperator) {
+      insertEntity[this.options.creatorField] = operator as Entity[ExtraField]
+      insertEntity[this.options.updaterField] = operator as Entity[ExtraField]
+    }
 
     // Create time and update time
+    if (this.options.hasTime) {
+      const timeSql = `UNIX_TIMESTAMP(CURRENT_TIMESTAMP(6))${this.options.timePrecision === 'ms' ? '*1000' : ''}`
+      const entityTimePart = {
+        [this.options.createTimeField]: () => timeSql,
+        [this.options.updateTimeField]: () => timeSql,
+      }
+      let primaryColumnValue
+      if (this.options.softDelete && this.options.reuseSoftDeletedData && existingEntity) {
+        primaryColumnValue = this.repository.getId(existingEntity)
+        await this.repository.update(
+          primaryColumnValue,
+          {
+            ...insertEntity,
+            ...entityTimePart,
+          },
+        )
+      } else {
+        const executionResult = await this.repository.createQueryBuilder()
+          .insert()
+          .into(this.entityClass)
+          .values({
+            ...insertEntity,
+            ...entityTimePart,
+          })
+          .execute()
+        primaryColumnValue = executionResult.raw.insertId
+      }
+      return await this.repository.findOne(primaryColumnValue) as Entity
+    }
 
     return await this.repository.save(insertEntity)
   }
