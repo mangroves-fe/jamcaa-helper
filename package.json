@@ -6,9 +6,7 @@
   "module": "dist/jamcaa-helper.es.js",
   "types": "dist/types",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "build:docs": "vite build --mode docs",
+    "build": "rm -rf ./dist && rollup -c",
     "test": "jest --coverage"
   },
   "exports": {
@@ -30,13 +28,18 @@
     "@commitlint/config-conventional": "^12.1.4",
     "@nestjs/common": "^7.6.17",
     "@nestjs/typeorm": "^7.1.5",
+    "@rollup/plugin-commonjs": "^19.0.0",
+    "@rollup/plugin-node-resolve": "^13.0.0",
+    "@rollup/plugin-typescript": "^8.2.1",
     "@types/jest": "^26.0.23",
     "@typescript-eslint/eslint-plugin": "^4.26.1",
     "@typescript-eslint/parser": "^4.26.1",
     "eslint": "^7.28.0",
     "husky": "^6.0.0",
     "jest": "^27.0.4",
+    "rollup": "^2.52.1",
     "ts-jest": "^27.0.3",
+    "tslib": "^2.3.0",
     "typeorm": "^0.2.34",
     "typescript": "^4.3.2"
   }
