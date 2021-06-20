@@ -30,17 +30,21 @@ export class JamcaaHelper<
     return uniqueKeyConditions
   }
 
+  private getTimeSql () {
+    return `UNIX_TIMESTAMP(CURRENT_TIMESTAMP(6))${this.options.timePrecision === 'ms' ? '*1000' : ''}`
+  }
+
   async createInsertQuery (
     partialEntity: Record<UniqueKeys, any> & Partial<Entity>,
-    operator: string,
+    operator?: string,
   ): Promise<Entity> {
     // Check if the entity already exists
     const existingEntity = await this.createGetQuery(this.getUniqueKeyConditions(partialEntity), true)
     if (this.options.softDelete) {
       if (existingEntity && existingEntity[this.options.softDeleteField] === this.options.softDeleteEnum[0]) {
-      // todo: Not found exception
-      throw new Error()
-    }
+        // todo: Not found exception
+        throw new Error()
+      }
     } else if (existingEntity) {
       throw new Error()
     }
@@ -57,13 +61,16 @@ export class JamcaaHelper<
 
     // Operator
     if (this.options.hasOperator) {
+      if (!operator) {
+        throw new Error('Operator expected')
+      }
       insertEntity[this.options.creatorField] = operator as Entity[ExtraField]
       insertEntity[this.options.updaterField] = operator as Entity[ExtraField]
     }
 
     // Create time and update time
     if (this.options.hasTime) {
-      const timeSql = `UNIX_TIMESTAMP(CURRENT_TIMESTAMP(6))${this.options.timePrecision === 'ms' ? '*1000' : ''}`
+      const timeSql = this.getTimeSql()
       const entityTimePart = {
         [this.options.createTimeField]: () => timeSql,
         [this.options.updateTimeField]: () => timeSql,
@@ -117,17 +124,76 @@ export class JamcaaHelper<
       .getOne()
   }
 
-  createUpdateQuery () {
+  async createUpdateQuery (
+    uniqueKeyConditions: Record<UniqueKeys, any>,
+    partialEntity: Partial<Entity>,
+    updateMask: string[],
+    allowedMask: string[],
+    operator?: string,
+  ): Promise<Entity> {
     // Check if exists
+    const existingEntity = await this.createGetQuery(uniqueKeyConditions)
+    if (!existingEntity) {
+      throw new Error()
+    }
+
+    // todo: import FieldMask helper
+    const filteredMask = FieldMask.filterMaskByMask(updateMask, allowedMask)
+    const updateCount = FieldMask.updateObjectByMask(existingEntity, partialEntity, filteredMask)
+
+    if (!updateCount) {
+      throw new Error('Nothing updated')
+    }
+
+    // Operator
+    if (this.options.hasOperator) {
+      if (!operator) {
+        throw new Error('Operator expected')
+      }
+      existingEntity[this.options.updaterField] = operator as Entity[ExtraField]
+    }
 
     // Update time
+    if (this.options.hasTime) {
+      const timeSql = this.getTimeSql()
+      const entityTimePart = {
+        [this.options.updateTimeField]: () => timeSql,
+      }
+      const primaryColumnValue = this.repository.getId(existingEntity)
+      await this.repository.update(
+        primaryColumnValue,
+        {
+          ...existingEntity,
+          ...entityTimePart,
+        },
+      )
+      return await this.repository.findOne(primaryColumnValue) as Entity
+    }
+
+    return await this.repository.save(existingEntity)
   }
 
-  createDeleteQuery () {
-    // Check if exists
-
-    // Update time
-
+  async createDeleteQuery (
+    uniqueKeyConditions: Record<UniqueKeys, any>,
+    operator?: string,
+  ): Promise<void> {
     // If soft delete
+    if (this.options.softDelete) {
+      await this.createUpdateQuery(
+        uniqueKeyConditions,
+        { [this.options.softDeleteField]: this.options.softDeleteEnum[1] } as Partial<Entity>,
+        [this.options.softDeleteField],
+        [this.options.softDeleteField],
+        operator,
+      )
+    } else {
+      // Check if exists
+      const existingEntity = await this.createGetQuery(uniqueKeyConditions)
+      if (!existingEntity) {
+        throw new Error()
+      }
+
+      await this.repository.remove(existingEntity)
+    }
   }
 }
