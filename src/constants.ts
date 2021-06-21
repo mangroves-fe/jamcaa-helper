@@ -15,4 +15,13 @@ export const DEFAULT_JAMCAA_OPTIONS: IJamcaaHelperOptions = {
   createTimeField: 'createTime',
   updateTimeField: 'updateTime',
   timePrecision: 'ms',
+  onEntityAlreadyExistsError: () => {
+    throw new Error('Entity already exists!')
+  },
+  onEntityNotFoundError: () => {
+    throw new Error('Entity not found!') 
+  },
+  onNothingUpdatedError: () => {
+    throw new Error('Nothing updated!')
+  },
 }

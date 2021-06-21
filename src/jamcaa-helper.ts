@@ -1,4 +1,5 @@
 import { getRepository, Repository } from 'typeorm'
+import { filterMaskByMask, updateObjectByMask } from '@mangroves/field-mask'
 import { DEFAULT_JAMCAA_OPTIONS } from './constants'
 import { IJamcaaHelperOptions } from './interfaces'
 import { ListQuery } from './list-query'
@@ -40,13 +41,11 @@ export class JamcaaHelper<
   ): Promise<Entity> {
     // Check if the entity already exists
     const existingEntity = await this.createGetQuery(this.getUniqueKeyConditions(partialEntity), true)
-    if (this.options.softDelete) {
-      if (existingEntity && existingEntity[this.options.softDeleteField] === this.options.softDeleteEnum[0]) {
-        // todo: Not found exception
-        throw new Error()
-      }
-    } else if (existingEntity) {
-      throw new Error()
+    if (
+      (this.options.softDelete && existingEntity && existingEntity[this.options.softDeleteField] === this.options.softDeleteEnum[0]) ||
+      (!this.options.softDelete && existingEntity)
+    ) {
+      this.options.onEntityAlreadyExistsError()
     }
 
     // If soft deleted data should be reused
@@ -134,15 +133,14 @@ export class JamcaaHelper<
     // Check if exists
     const existingEntity = await this.createGetQuery(uniqueKeyConditions)
     if (!existingEntity) {
-      throw new Error()
+      this.options.onEntityNotFoundError()
     }
 
-    // todo: import FieldMask helper
-    const filteredMask = FieldMask.filterMaskByMask(updateMask, allowedMask)
-    const updateCount = FieldMask.updateObjectByMask(existingEntity, partialEntity, filteredMask)
+    const filteredMask = filterMaskByMask(updateMask, allowedMask)
+    const updateCount = updateObjectByMask(existingEntity, partialEntity, filteredMask)
 
     if (!updateCount) {
-      throw new Error('Nothing updated')
+      this.options.onNothingUpdatedError()
     }
 
     // Operator
@@ -190,7 +188,7 @@ export class JamcaaHelper<
       // Check if exists
       const existingEntity = await this.createGetQuery(uniqueKeyConditions)
       if (!existingEntity) {
-        throw new Error()
+        this.options.onEntityNotFoundError()
       }
 
       await this.repository.remove(existingEntity)
