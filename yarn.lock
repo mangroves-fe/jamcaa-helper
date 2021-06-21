@@ -657,6 +657,11 @@
     "@types/yargs" "^16.0.0"
     chalk "^4.0.0"
 
+"@mangroves/field-mask@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@mangroves/field-mask/-/field-mask-0.1.0.tgz#17f4f12237bc139dba9198ae516d33e2709763a2"
+  integrity sha512-PZhFz2bf7aXwNySfKu3neihkkzbjFrEMR/1T07fe4+8cCtn47IrQmVTnGm6b8i3KaGCtd+UTUmRqX0C7OmW5BQ==
+
 "@nestjs/common@^7.6.17":
   version "7.6.17"
   resolved "https://registry.yarnpkg.com/@nestjs/common/-/common-7.6.17.tgz#623c7f93117bea15fff07a6b63fcd644a8764655"

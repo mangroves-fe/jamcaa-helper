@@ -1,21 +1,14 @@
 {
-  "name": "jamcaa-helper",
+  "name": "@mangroves/jamcaa-helper",
   "version": "0.1.0",
   "description": "",
-  "main": "dist/jamcaa-helper.umd.js",
-  "module": "dist/jamcaa-helper.es.js",
+  "main": "dist/index.js",
   "types": "dist/types",
   "scripts": {
-    "build": "rm -rf ./dist && rollup -c",
+    "build": "rm -rf ./dist && rollup -c --configPlugin typescript",
     "test": "jest --coverage"
   },
-  "exports": {
-    ".": {
-      "import": "./dist/jamcaa-helper.es.js",
-      "require": "./dist/jamcaa-helper.umd.js"
-    }
-  },
-  "keywords": [],
+  "keywords": ["jamcaa", "typeorm", "crud", "mysql"],
   "author": "mangroves-fe",
   "license": "MIT",
   "husky": {
@@ -42,5 +35,8 @@
     "tslib": "^2.3.0",
     "typeorm": "^0.2.34",
     "typescript": "^4.3.2"
+  },
+  "dependencies": {
+    "@mangroves/field-mask": "^0.1.0"
   }
 }
