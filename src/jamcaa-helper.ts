@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm'
+import { EntityTarget, getRepository, Repository } from 'typeorm'
 import { filterMaskByMask, updateObjectByMask } from '@mangroves/field-mask'
 import { DEFAULT_JAMCAA_OPTIONS } from './constants'
 import { IJamcaaHelperOptions } from './interfaces'
@@ -9,6 +9,8 @@ export class JamcaaHelper<
   UniqueKeys extends keyof Entity,
   ExtraField extends string = string,
 > {
+  private readonly repository: Repository<Entity>
+
   private readonly uniqueKeys: UniqueKeys[]
 
   private readonly options: IJamcaaHelperOptions<ExtraField>
@@ -16,10 +18,11 @@ export class JamcaaHelper<
   private readonly entityName: string
 
   constructor (
-    private readonly repository: Repository<Entity>,
+    entity: EntityTarget<Entity>,
     uniqueKeys: UniqueKeys | UniqueKeys[],
     options?: Partial<IJamcaaHelperOptions<ExtraField>>,
   ) {
+    this.repository = getRepository(entity)
     this.uniqueKeys = Array.isArray(uniqueKeys) ? uniqueKeys : [uniqueKeys]
     this.options = Object.assign({}, DEFAULT_JAMCAA_OPTIONS, options)
     this.entityName = typeof this.repository.target === 'string' ? this.repository.target : this.repository.target.name
@@ -83,7 +86,7 @@ export class JamcaaHelper<
     // Operator
     if (this.options.hasOperator) {
       if (!operator) {
-        throw new Error('Operator expected')
+        throw new Error('[JamcaaHelper] Operator expected')
       }
       insertEntity[this.options.creatorField] = operator as Entity[ExtraField]
       insertEntity[this.options.updaterField] = operator as Entity[ExtraField]
@@ -115,9 +118,14 @@ export class JamcaaHelper<
             ...entityTimePart,
           })
           .execute()
-        primaryColumnValue = executionResult.raw.insertId
+        primaryColumnValue = executionResult.identifiers[0]
       }
-      return await this.repository.findOne(primaryColumnValue) as Entity
+      const entity = await this.repository.findOne(primaryColumnValue)
+      if (!entity) {
+        throw new Error('[JamcaaHelper] Error finding inserted entity.')
+      }
+
+      return entity
     }
 
     return await this.repository.save(insertEntity)
@@ -199,7 +207,7 @@ export class JamcaaHelper<
     // Operator
     if (this.options.hasOperator) {
       if (!operator) {
-        throw new Error('Operator expected')
+        throw new Error('[JamcaaHelper] Operator expected')
       }
       existingEntity[this.options.updaterField] = operator as Entity[ExtraField]
     }
