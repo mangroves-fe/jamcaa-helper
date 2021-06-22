@@ -6,7 +6,8 @@
   "types": "dist/types",
   "scripts": {
     "build": "rm -rf ./dist && rollup -c --configPlugin typescript",
-    "test": "jest --coverage"
+    "test": "jest --coverage",
+    "prepublishOnly": "npm run test && npm run build"
   },
   "keywords": ["jamcaa", "typeorm", "crud", "mysql"],
   "author": "mangroves-fe",
