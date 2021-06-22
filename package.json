@@ -9,7 +9,12 @@
     "test": "jest --coverage",
     "prepublishOnly": "npm run test && npm run build"
   },
-  "keywords": ["jamcaa", "typeorm", "crud", "mysql"],
+  "keywords": [
+    "jamcaa",
+    "typeorm",
+    "crud",
+    "mysql"
+  ],
   "author": "mangroves-fe",
   "license": "MIT",
   "husky": {
@@ -20,8 +25,7 @@
   "devDependencies": {
     "@commitlint/cli": "^12.1.4",
     "@commitlint/config-conventional": "^12.1.4",
-    "@nestjs/common": "^7.6.17",
-    "@nestjs/typeorm": "^7.1.5",
+    "@nestjs/common": "^7.6.18",
     "@rollup/plugin-commonjs": "^19.0.0",
     "@rollup/plugin-node-resolve": "^13.0.0",
     "@rollup/plugin-typescript": "^8.2.1",
