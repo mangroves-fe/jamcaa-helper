@@ -1,3 +1,4 @@
+import { BadRequestException, NotFoundException } from '@nestjs/common'
 import { IJamcaaHelperOptions } from './interfaces'
 
 export const DEFAULT_JAMCAA_OPTIONS: IJamcaaHelperOptions = {
@@ -15,13 +16,16 @@ export const DEFAULT_JAMCAA_OPTIONS: IJamcaaHelperOptions = {
   createTimeField: 'createTime',
   updateTimeField: 'updateTime',
   timePrecision: 'ms',
-  onEntityAlreadyExistsError: () => {
-    throw new Error('Entity already exists!')
+  onEntityAlreadyExistsError: (entityName) => {
+    throw new BadRequestException(`${entityName} already exists!`)
   },
-  onEntityNotFoundError: () => {
-    throw new Error('Entity not found!') 
+  onEntityNotFoundError: (entityName) => {
+    throw new NotFoundException(`${entityName} not found!`) 
+  },
+  onDisallowedUpdateMaskError: (disallowedMask) => {
+    throw new BadRequestException(`${disallowedMask.join(', ')} cannot be updated!`)
   },
   onNothingUpdatedError: () => {
-    throw new Error('Nothing updated!')
+    throw new BadRequestException('Nothing updated!')
   },
 }

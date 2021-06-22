@@ -30,9 +30,11 @@ export interface IJamcaaHelperOptions<
 
   // Events
   /** Throw an HTTP exception instead */
-  onEntityAlreadyExistsError: () => never
+  onEntityAlreadyExistsError: (entityName: string) => never
   /** Throw an HTTP exception instead */
-  onEntityNotFoundError: () => never
+  onEntityNotFoundError: (entityName: string) => never
+  /** Throw an HTTP exception instead */
+  onDisallowedUpdateMaskError: (disallowedMask: string[]) => never
   /** Throw an HTTP exception instead */
   onNothingUpdatedError: () => never
 }

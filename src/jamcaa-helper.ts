@@ -5,43 +5,65 @@ import { IJamcaaHelperOptions } from './interfaces'
 import { ListQuery } from './list-query'
 
 export class JamcaaHelper<
-  ExtraField extends string,
   Entity extends Record<string & ExtraField, any>,
   UniqueKeys extends keyof Entity,
+  ExtraField extends string = string,
 > {
+  private readonly uniqueKeys: UniqueKeys[]
+
   private readonly options: IJamcaaHelperOptions<ExtraField>
+
+  private readonly entityName: string
 
   constructor (
     private readonly repository: Repository<Entity>,
-    private readonly uniqueKeys: UniqueKeys[],
+    uniqueKeys: UniqueKeys | UniqueKeys[],
     options?: Partial<IJamcaaHelperOptions<ExtraField>>,
   ) {
+    this.uniqueKeys = Array.isArray(uniqueKeys) ? uniqueKeys : [uniqueKeys]
     this.options = Object.assign({}, DEFAULT_JAMCAA_OPTIONS, options)
-  }
-
-  private getUniqueKeyConditions (partialEntity: Record<UniqueKeys, any> & Partial<Entity>) {
-    const uniqueKeyConditions: Record<UniqueKeys, any> = {} as Record<UniqueKeys, any>
-    this.uniqueKeys.forEach((key) => {
-      uniqueKeyConditions[key] = partialEntity[key]
-    })
-    return uniqueKeyConditions
+    this.entityName = typeof this.repository.target === 'string' ? this.repository.target : this.repository.target.name
   }
 
   private getTimeSql () {
     return `UNIX_TIMESTAMP(CURRENT_TIMESTAMP(6))${this.options.timePrecision === 'ms' ? '*1000' : ''}`
   }
 
+  private async findOneEntity (uniqueKeyConditions: Record<UniqueKeys, any>, showDeleted?: boolean): Promise<Entity | undefined> {
+    return await this.createListQuery(showDeleted)
+      .filter((fq) => {
+        for (const key in uniqueKeyConditions) {
+          fq.equals(key, uniqueKeyConditions[key])
+        }
+      })
+      .getQueryBuilder()
+      .getOne()
+  }
+
+  /**
+   * Create an entity or reuse a soft deleted entity and insert it into database
+   * @param partialEntity What is the entity made of?
+   * @param operator Who is creating this entity?
+   * @returns Inserted entity
+   */
   async createInsertQuery (
     partialEntity: Record<UniqueKeys, any> & Partial<Entity>,
-    operator?: string,
+    operator: string,
   ): Promise<Entity> {
     // Check if the entity already exists
-    const existingEntity = await this.createGetQuery(this.getUniqueKeyConditions(partialEntity), true)
-    if (
-      (this.options.softDelete && existingEntity && existingEntity[this.options.softDeleteField] === this.options.softDeleteEnum[0]) ||
+    let existingEntity: Entity | undefined
+    if (this.uniqueKeys.length) {
+      const uniqueKeyConditions: Record<UniqueKeys, any> = {} as Record<UniqueKeys, any>
+      this.uniqueKeys.forEach((key) => {
+        uniqueKeyConditions[key] = partialEntity[key]
+      })
+      existingEntity = await this.findOneEntity(uniqueKeyConditions, true)
+      if (
+        (this.options.softDelete && existingEntity && existingEntity[this.options.softDeleteField] === this.options.softDeleteEnum[0]) ||
       (!this.options.softDelete && existingEntity)
-    ) {
-      this.options.onEntityAlreadyExistsError()
+      ) {
+        this.options.onEntityAlreadyExistsError(this.entityName)
+      }
     }
 
     // If soft deleted data should be reused
@@ -101,6 +123,11 @@ export class JamcaaHelper<
     return await this.repository.save(insertEntity)
   }
 
+  /**
+   * List entities
+   * @param showDeleted Whether to show deleted data. Only valid when soft delete is enabled
+   * @returns ListQuery instance. Try `listQuery.getQueryBuilder()` to get the `SelectQueryBuilder`
+   */
   createListQuery (showDeleted?: boolean): ListQuery<Entity> {
     const listQuery = new ListQuery(
       this.repository.createQueryBuilder(),
@@ -115,31 +142,47 @@ export class JamcaaHelper<
     return listQuery
   }
 
-  async createGetQuery (uniqueKeyConditions: Record<UniqueKeys, any>, showDeleted?: boolean): Promise<Entity | undefined> {
-    return await this.createListQuery(showDeleted)
-      .filter((fq) => {
-        for (const key in uniqueKeyConditions) {
-          fq.equals(key, uniqueKeyConditions[key])
-        }
-      })
-      .getQueryBuilder()
-      .getOne()
+  /**
+   * Get one entity
+   * @param uniqueKeyConditions Conditions that contain all unique keys
+   * @param showDeleted Whether to show deleted data. Only valid when soft delete is enabled
+   * @returns Entity
+   */
+  async createGetQuery (uniqueKeyConditions: Record<UniqueKeys, any>, showDeleted?: boolean): Promise<Entity> {
+    const existingEntity = await this.findOneEntity(uniqueKeyConditions, showDeleted)
+    if (!existingEntity) {
+      this.options.onEntityNotFoundError(this.entityName)
+    }
+    return existingEntity
   }
 
+  /**
+   * Update an entity with update_mask
+   * @param uniqueKeyConditions Conditions that contain all unique keys
+   * @param partialEntity Update message passed by the client
+   * @param updateMask FieldMask passed by the client
+   * @param allowedMask Allowed FieldMask
+   * @param operator Who is updating the entity?
+   * @returns Updated entity
+   */
   async createUpdateQuery (
     uniqueKeyConditions: Record<UniqueKeys, any>,
     partialEntity: Partial<Entity>,
     updateMask: string[],
     allowedMask: string[],
-    operator?: string,
+    operator: string,
   ): Promise<Entity> {
     // Check if exists
     const existingEntity = await this.createGetQuery(uniqueKeyConditions)
-    if (!existingEntity) {
-      this.options.onEntityNotFoundError()
-    }
 
     const filteredMask = filterMaskByMask(updateMask, allowedMask)
+
+    const disallowedMask = updateMask.filter((mask) => !filteredMask.includes(mask))
+
+    if (disallowedMask.length) {
+      this.options.onDisallowedUpdateMaskError(disallowedMask)
+    }
+
     const updateCount = updateObjectByMask(existingEntity, partialEntity, filteredMask)
 
     if (!updateCount) {
@@ -181,9 +224,14 @@ export class JamcaaHelper<
     return await this.repository.save(existingEntity)
   }
 
+  /**
+   * Delete an entity
+   * @param uniqueKeyConditions Conditions that contain all unique keys
+   * @param operator Who is deleting the entity
+   */
   async createDeleteQuery (
     uniqueKeyConditions: Record<UniqueKeys, any>,
-    operator?: string,
+    operator: string,
   ): Promise<void> {
     // If soft delete
     if (this.options.softDelete) {
@@ -197,10 +245,6 @@ export class JamcaaHelper<
     } else {
       // Check if exists
       const existingEntity = await this.createGetQuery(uniqueKeyConditions)
-      if (!existingEntity) {
-        this.options.onEntityNotFoundError()
-      }
-
       await this.repository.remove(existingEntity)
     }
   }

@@ -2,6 +2,7 @@
 
 If you are using:
 
+- Nestjs
 - TypeORM
 - MySQL
 

@@ -20,5 +20,5 @@ export default defineConfig({
     nodeResolve(),
     commonjs(),
   ],
-  external: ['typeorm'],
+  external: ['@nestjs/common', 'typeorm'],
 })
