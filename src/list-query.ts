@@ -12,6 +12,12 @@ type SingleQueryValue = undefined | null | string | number
  
 export class ListQuery <Entity extends Record<string, any>> {
   private alias: string
+
+  private showDeleted: boolean
+
+  private pageNumber: SingleQueryValue
+
+  private pageSize: SingleQueryValue
  
   constructor (
     private queryBuilder: SelectQueryBuilder<Entity>,
@@ -22,8 +28,33 @@ export class ListQuery <Entity extends Record<string, any>> {
   ) {
     this.alias = queryBuilder.alias
   }
+
+  private addShowDeletedCondition () {
+    if (!this.showDeleted && this.softDelete) {
+      this.queryBuilder = this.queryBuilder.andWhere(
+        `${this.alias}.${this.softDeleteField} = :jamcaaSoftDeleteValue`,
+        {
+          jamcaaSoftDeleteValue: this.softDeleteEnum[0],
+        },
+      )
+    }
+  }
+
+  private addPaginationCondition () {
+    let convertedPageNumber = 1
+    let convertedPageSize = this.maxUnspecifiedPageSize
+    if (this.pageNumber != null && this.pageSize != null) {
+      convertedPageNumber = Number(this.pageNumber)
+      convertedPageSize = Number(this.pageSize)
+    }
+    if (!isNaN(convertedPageNumber) && !isNaN(convertedPageSize)) {
+      this.queryBuilder = this.queryBuilder.skip((convertedPageNumber - 1) * convertedPageSize).take(convertedPageSize)
+    }
+  }
  
   getQueryBuilder (): SelectQueryBuilder<Entity> {
+    this.addShowDeletedCondition()
+    this.addPaginationCondition()
     return this.queryBuilder
   }
  
@@ -36,27 +67,13 @@ export class ListQuery <Entity extends Record<string, any>> {
   }
  
   showDeletedQuery (showDeleted: boolean | undefined): this {
-    if (!showDeleted && this.softDelete) {
-      this.queryBuilder = this.queryBuilder.andWhere(
-        `${this.alias}.${this.softDeleteField} = :jamcaaSoftDeleteValue`,
-        {
-          jamcaaSoftDeleteValue: this.softDeleteEnum[0],
-        },
-      )
-    }
+    this.showDeleted = !!showDeleted
     return this
   }
  
   paginationQuery (pageNumber: SingleQueryValue, pageSize: SingleQueryValue): this {
-    let convertedPageNumber = 1
-    let convertedPageSize = this.maxUnspecifiedPageSize
-    if (pageNumber != null && pageSize != null) {
-      convertedPageNumber = Number(pageNumber)
-      convertedPageSize = Number(pageSize)
-    }
-    if (!isNaN(convertedPageNumber) && !isNaN(convertedPageSize)) {
-      this.queryBuilder = this.queryBuilder.skip((convertedPageNumber - 1) * convertedPageSize).take(convertedPageSize)
-    }
+    this.pageNumber = pageNumber
+    this.pageSize = pageSize
     return this
   }
 }

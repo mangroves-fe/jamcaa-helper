@@ -1,4 +1,4 @@
-import { getRepository, Repository } from 'typeorm'
+import { Repository } from 'typeorm'
 import { filterMaskByMask, updateObjectByMask } from '@mangroves/field-mask'
 import { DEFAULT_JAMCAA_OPTIONS } from './constants'
 import { IJamcaaHelperOptions } from './interfaces'
@@ -9,17 +9,13 @@ export class JamcaaHelper<
   Entity extends Record<string & ExtraField, any>,
   UniqueKeys extends keyof Entity,
 > {
-  private readonly repository: Repository<Entity>
-
   private readonly options: IJamcaaHelperOptions<ExtraField>
 
   constructor (
-    private readonly entityClass: { new (): Entity },
+    private readonly repository: Repository<Entity>,
     private readonly uniqueKeys: UniqueKeys[],
-    options: Partial<IJamcaaHelperOptions<ExtraField>>,
-    connectionName?: string,
+    options?: Partial<IJamcaaHelperOptions<ExtraField>>,
   ) {
-    this.repository = getRepository(entityClass, connectionName)
     this.options = Object.assign({}, DEFAULT_JAMCAA_OPTIONS, options)
   }
 
@@ -49,13 +45,17 @@ export class JamcaaHelper<
     }
 
     // If soft deleted data should be reused
-    const insertEntity = this.options.softDelete && this.options.reuseSoftDeletedData && existingEntity ? existingEntity : new this.entityClass()
+    const insertEntity = this.options.softDelete && this.options.reuseSoftDeletedData && existingEntity ? existingEntity : this.repository.create()
     for (const key in partialEntity) {
       const value = partialEntity[key]
       insertEntity[key] = value
     }
     if (this.options.softDelete && this.options.reuseSoftDeletedData) {
       insertEntity[this.options.softDeleteField] = this.options.softDeleteEnum[0]
+    }
+
+    if (this.options.dataVersion) {
+      insertEntity[this.options.dataVersionField] = 1
     }
 
     // Operator
@@ -87,7 +87,7 @@ export class JamcaaHelper<
       } else {
         const executionResult = await this.repository.createQueryBuilder()
           .insert()
-          .into(this.entityClass)
+          .into(this.repository.target)
           .values({
             ...insertEntity,
             ...entityTimePart,
@@ -101,24 +101,27 @@ export class JamcaaHelper<
     return await this.repository.save(insertEntity)
   }
 
-  createListQuery (): ListQuery<Entity> {
-    return new ListQuery(
+  createListQuery (showDeleted?: boolean): ListQuery<Entity> {
+    const listQuery = new ListQuery(
       this.repository.createQueryBuilder(),
       this.options.maxUnspecifiedPageSize,
       this.options.softDelete,
       this.options.softDeleteField,
       this.options.softDeleteEnum,
     )
+    if (this.options.softDelete) {
+      listQuery.showDeletedQuery(showDeleted)
+    }
+    return listQuery
   }
 
   async createGetQuery (uniqueKeyConditions: Record<UniqueKeys, any>, showDeleted?: boolean): Promise<Entity | undefined> {
-    return await this.createListQuery()
+    return await this.createListQuery(showDeleted)
       .filter((fq) => {
         for (const key in uniqueKeyConditions) {
           fq.equals(key, uniqueKeyConditions[key])
         }
       })
-      .showDeletedQuery(showDeleted)
       .getQueryBuilder()
       .getOne()
   }
@@ -141,6 +144,13 @@ export class JamcaaHelper<
 
     if (!updateCount) {
       this.options.onNothingUpdatedError()
+    }
+
+    // Data version
+    if (this.options.dataVersion) {
+      const previousVersion = existingEntity[this.options.dataVersionField]
+      const nextVersion = isNaN(previousVersion) ? 2 : Number(previousVersion) + 1
+      existingEntity[this.options.dataVersionField] = nextVersion
     }
 
     // Operator

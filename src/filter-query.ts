@@ -99,7 +99,7 @@ export class FilterQuery <Entity extends Record<string, any>> {
   }
  
   getQueryBuilder (): SelectQueryBuilder<Entity> {
-    return this.queryBuilder.where(this.getClause(), this.getParameters())
+    return this.queryBuilder.andWhere(this.getClause(), this.getParameters())
   }
  
   equals (field: keyof Entity, value: QueryValue): this {
