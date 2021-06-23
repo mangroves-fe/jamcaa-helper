@@ -21,8 +21,9 @@ export class JamcaaHelper<
     entity: EntityTarget<Entity>,
     uniqueKeys: UniqueKeys | UniqueKeys[],
     options?: Partial<IJamcaaHelperOptions<ExtraField>>,
+    connectionName?: string,
   ) {
-    this.repository = getRepository(entity)
+    this.repository = getRepository(entity, connectionName)
     this.uniqueKeys = Array.isArray(uniqueKeys) ? uniqueKeys : [uniqueKeys]
     this.options = Object.assign({}, DEFAULT_JAMCAA_OPTIONS, options)
     this.entityName = typeof this.repository.target === 'string' ? this.repository.target : this.repository.target.name
@@ -32,7 +33,7 @@ export class JamcaaHelper<
     return `UNIX_TIMESTAMP(CURRENT_TIMESTAMP(6))${this.options.timePrecision === 'ms' ? '*1000' : ''}`
   }
 
-  private async findOneEntity (uniqueKeyConditions: Record<UniqueKeys, any>, showDeleted?: boolean): Promise<Entity | undefined> {
+  async findOneEntity (uniqueKeyConditions: Record<UniqueKeys, any>, showDeleted?: boolean): Promise<Entity | undefined> {
     return await this.createListQuery(showDeleted)
       .filter((fq) => {
         for (const key in uniqueKeyConditions) {
