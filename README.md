@@ -8,7 +8,7 @@ If you are using:
 
 Then you can drink a cup of tea instead of spending time on writing CRUD code.
 
-# Install
+# Installation
 
 (Not available yet)
 
@@ -18,7 +18,7 @@ yarn add @mangroves/jamcaa-helper
 
 # Usage
 
-## Instantiate
+## Instantiation
 
 ```typescript
 import { JamcaaHelper } from '@mangroves/jamcaa-helper'
@@ -196,7 +196,7 @@ export class SomeService {
 }
 ```
 
-# Options
+# Constructor Options
 
 | Option                      | Type                                | Default             | Description                                                       |
 | :-------------------------- | :---------------------------------- | :------------------ | :---------------------------------------------------------------- |
