@@ -127,8 +127,8 @@ export class SomeService {
   private readonly crudHelper = new JamcaaHelper(SomeEntity, 'entityUniqueKey' /** , options, connectionName */)
 
   async get (id: string) {
-    const uniqueKeysCondition = { id }
-    const entity = await this.crudHelper.createGetQuery(uniqueKeysCondition)
+    const uniqueKeyConditions = { id }
+    const entity = await this.crudHelper.createGetQuery(uniqueKeyConditions)
     return getDTOFromEntity(entity)
   }
 }
@@ -159,12 +159,12 @@ export class SomeService {
   private readonly crudHelper = new JamcaaHelper(SomeEntity, 'entityUniqueKey' /** , options, connectionName */)
 
   async update (id: string, dto: DTO, operator: string) {
-    const uniqueKeysCondition = { id }
+    const uniqueKeyConditions = { id }
     const updatePartialEntity = { column1: 'new value', column2: { deep: 'new value' } }
     const updateMask = ['column1', 'column2.deep']
     const allowedMask = ['column1', 'column2.deep']
     const updatedEntity = await this.crudHelper.createUpdateQuery(
-      uniqueKeysCondition,
+      uniqueKeyConditions,
       updatePartialEntity,
       updateMask,
       allowedMask,
@@ -196,8 +196,8 @@ export class SomeService {
   private readonly crudHelper = new JamcaaHelper(SomeEntity, 'entityUniqueKey' /** , options, connectionName */)
 
   async delete (id: string, operator: string) {
-    const uniqueKeysCondition = { id }
-    await this.crudHelper.createDeleteQuery(uniqueKeysCondition, operator)
+    const uniqueKeyConditions = { id }
+    await this.crudHelper.createDeleteQuery(uniqueKeyConditions, operator)
   }
 }
 ```
