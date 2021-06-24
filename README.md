@@ -213,6 +213,7 @@ export class SomeService {
 | reuseSoftDeletedData        | boolean                             | true                | Whether to reuse soft deleted data                                |
 | dataVersion                 | boolean                             | true                | Whether to increase data version column on update                 |
 | dataVersionField            | string                              | 'dataVersion'       | Data version column field                                         |
+| dataVersionType             | 'string' or 'number'                | 'string'            | Data version type                                                 |
 | hasOperator                 | boolean                             | true                | Whether there are creator and updater columns                     |
 | creatorField                | string                              | 'creator'           | Creator column field                                              |
 | updaterField                | string                              | 'updater'           | updater column field                                              |
