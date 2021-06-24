@@ -1,4 +1,4 @@
-import { EntityTarget, getRepository, Repository } from 'typeorm'
+import { EntityTarget, FindConditions, getRepository, Repository } from 'typeorm'
 import { filterMaskByMask, updateObjectByMask } from '@mangroves/field-mask'
 import { DEFAULT_JAMCAA_OPTIONS } from './constants'
 import { IJamcaaHelperOptions } from './interfaces'
@@ -34,14 +34,11 @@ export class JamcaaHelper<
   }
 
   async findOneEntity (uniqueKeyConditions: Record<UniqueKeys, any>, showDeleted?: boolean): Promise<Entity | undefined> {
-    return await this.createListQuery(showDeleted)
-      .filter((fq) => {
-        for (const key in uniqueKeyConditions) {
-          fq.equals(key, uniqueKeyConditions[key])
-        }
-      })
-      .getQueryBuilder()
-      .getOne()
+    const where: FindConditions<Entity> = Object.assign({}, uniqueKeyConditions) as FindConditions<Entity>
+    if (this.options.softDelete && !showDeleted) {
+      where[this.options.softDeleteField] = this.options.softDeleteEnum[0]
+    }
+    return await this.repository.findOne({ where })
   }
 
   /**
@@ -81,7 +78,7 @@ export class JamcaaHelper<
     }
 
     if (this.options.dataVersion) {
-      insertEntity[this.options.dataVersionField] = 1
+      insertEntity[this.options.dataVersionField] = this.options.dataVersionType === 'number' ? 1 : '1'
     }
 
     // Operator
@@ -202,7 +199,7 @@ export class JamcaaHelper<
     if (this.options.dataVersion) {
       const previousVersion = existingEntity[this.options.dataVersionField]
       const nextVersion = isNaN(previousVersion) ? 2 : Number(previousVersion) + 1
-      existingEntity[this.options.dataVersionField] = nextVersion
+      existingEntity[this.options.dataVersionField] = this.options.dataVersionType === 'number' ? nextVersion : nextVersion.toString()
     }
 
     // Operator

@@ -13,6 +13,7 @@ export interface IJamcaaHelperOptions<
 
   dataVersion: boolean
   dataVersionField: string
+  dataVersionType: 'string' | 'number'
 
   /** Insert creator and update updater automatically */
   hasOperator: boolean

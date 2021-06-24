@@ -9,6 +9,7 @@ export const DEFAULT_JAMCAA_OPTIONS: IJamcaaHelperOptions = {
   reuseSoftDeletedData: true,
   dataVersion: true,
   dataVersionField: 'dataVersion',
+  dataVersionType: 'string',
   hasOperator: true,
   creatorField: 'creator',
   updaterField: 'updater',
