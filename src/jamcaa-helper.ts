@@ -169,7 +169,7 @@ export class JamcaaHelper<
    * @param updateMask FieldMask passed by the client
    * @param allowedMask Allowed FieldMask
    * @param operator Who is updating the entity?
-   * @param transformFromEntity Function that transforms entity to other object which fits updateMask
+   * @param transformFromEntity Function that transforms entity to another object which fits updateMask
    * @param transformToEntity Function that transforms the object transformed by `transformFromEntity` back to entity
    * @returns Updated entity
    */
