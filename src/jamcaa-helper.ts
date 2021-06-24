@@ -177,6 +177,8 @@ export class JamcaaHelper<
     updateMask: string[],
     allowedMask: string[],
     operator: string,
+    transformFromEntity: (entity: Partial<Entity>) => any = (entity) => entity,
+    transformToEntity: (object: any) => Entity = (entity) => entity,
   ): Promise<Entity> {
     // Check if exists
     const existingEntity = await this.createGetQuery(uniqueKeyConditions)
@@ -189,17 +191,21 @@ export class JamcaaHelper<
       this.options.onDisallowedUpdateMaskError(disallowedMask)
     }
 
-    const updateCount = updateObjectByMask(existingEntity, partialEntity, filteredMask)
+    const transformedExistingEntity = transformFromEntity(existingEntity)
+
+    const updateCount = updateObjectByMask(transformedExistingEntity, transformFromEntity(partialEntity), filteredMask)
 
     if (!updateCount) {
       this.options.onNothingUpdatedError()
     }
 
+    const entityToUpdate: Entity = transformToEntity(transformedExistingEntity)
+
     // Data version
     if (this.options.dataVersion) {
-      const previousVersion = existingEntity[this.options.dataVersionField]
+      const previousVersion = entityToUpdate[this.options.dataVersionField]
       const nextVersion = isNaN(previousVersion) ? 2 : Number(previousVersion) + 1
-      existingEntity[this.options.dataVersionField] = this.options.dataVersionType === 'number' ? nextVersion : nextVersion.toString()
+      entityToUpdate[this.options.dataVersionField] = this.options.dataVersionType === 'number' ? nextVersion : nextVersion.toString()
     }
 
     // Operator
@@ -207,7 +213,7 @@ export class JamcaaHelper<
       if (!operator) {
         throw new Error('[JamcaaHelper] Operator expected')
       }
-      existingEntity[this.options.updaterField] = operator as Entity[ExtraField]
+      entityToUpdate[this.options.updaterField] = operator as Entity[ExtraField]
     }
 
     // Update time
@@ -216,18 +222,18 @@ export class JamcaaHelper<
       const entityTimePart = {
         [this.options.updateTimeField]: () => timeSql,
       }
-      const primaryColumnValue = this.repository.getId(existingEntity)
+      const primaryColumnValue = this.repository.getId(entityToUpdate)
       await this.repository.update(
         primaryColumnValue,
         {
-          ...existingEntity,
+          ...entityToUpdate,
           ...entityTimePart,
         },
       )
       return await this.repository.findOne(primaryColumnValue) as Entity
     }
 
-    return await this.repository.save(existingEntity)
+    return await this.repository.save(entityToUpdate)
   }
 
   /**
