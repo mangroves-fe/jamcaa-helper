@@ -1,12 +1,53 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common'
+import { Connection, createConnection } from 'typeorm'
 import { JamcaaHelper } from '../src'
 import { TestEntity } from './testing-module/test.entity'
 
 jest.mock('@nestjs/common')
-jest.mock('typeorm')
+// jest.mock('typeorm')
 
 const NOT_FOUND_EXCEPTION_MESSAGE = `${TestEntity.name} not found!`
 const ALREADY_EXISTS_EXCEPTION_MESSAGE = `${TestEntity.name} already exists!`
+
+let connection: Connection
+
+beforeAll(async () => {
+  connection = await createConnection({
+    type: 'mysql',
+    host: '127.0.0.1',
+    port: 6603,
+    username: 'jamcaa',
+    password: 'jamcaa',
+    database: 'test',
+    entities: [TestEntity],
+  })
+})
+
+beforeEach(async () => {
+  await connection.query('DROP TABLE IF EXISTS test;')
+  await connection.query(
+    `
+    CREATE TABLE IF NOT EXISTS test (
+      id BIGINT UNSIGNED AUTO_INCREMENT,
+      first_name VARCHAR(64) NOT NULL,
+      last_name VARCHAR(64) NOT NULL,
+      data_version BIGINT UNSIGNED,
+      delete_status TINYINT NOT NULL DEFAULT 0,
+      creator VARCHAR(64),
+      updater VARCHAR(64),
+      create_time BIGINT UNSIGNED,
+      update_time BIGINT UNSIGNED,
+      PRIMARY KEY (id),
+      UNIQUE KEY uix_first_name_last_name (first_name, last_name)
+    )ENGINE=INNODB DEFAULT CHARSET=utf8;
+    `,
+  )
+})
+
+afterAll(async () => {
+  await connection.query('DROP TABLE IF EXISTS test;')
+  await connection.close()
+})
 
 describe('Default options', () => {
   let helper: JamcaaHelper<TestEntity, 'firstName' | 'lastName'>

@@ -226,6 +226,21 @@ export class SomeService {
 | onDisallowedUpdateMaskError | (disallowedMask: string[]) => never | Throw 400 exception | To throw an exception when update_mask contains disallowed fields |
 | onNothingUpdatedError       | () => never                         | Throw 400 exception | To throw an exception when nothing updated                        |
 
+# Test
+
+Real MySQL environment required.
+
+We run our test under real database running on Docker.
+
+1. Install Docker
+2. Execute the following command to start a MySQL container
+
+```bash
+docker run --platform linux/x86_64 --name jamcaa-mysql -e MYSQL_USER=jamcaa -e MYSQL_PASSWORD=jamcaa -e MYSQL_DATABASE=test -e MYSQL_ROOT_PASSWORD=root -p 6603:3306 -d mysql:5.7
+```
+
+TODO: use Node script to start and remove MySQL container automatically
+
 # Caveat
 
 Make sure you are using the same TypeORM library in node_modules, or else JamcaaHelper will not get the correct ORM connection.
