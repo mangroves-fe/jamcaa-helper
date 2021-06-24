@@ -25,5 +25,8 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node-version }}
+    - run: docker run --platform linux/x86_64 --name jamcaa-mysql -e MYSQL_USER=jamcaa -e MYSQL_PASSWORD=jamcaa -e MYSQL_DATABASE=test -e MYSQL_ROOT_PASSWORD=root -p 6603:3306 -d mysql:5.7
     - run: npm install
     - run: npm test
+    - run: docker stop jamcaa-mysql
+    - run: docker rm jamcaa-mysql
