@@ -169,16 +169,18 @@ export class JamcaaHelper<
    * @param updateMask FieldMask passed by the client
    * @param allowedMask Allowed FieldMask
    * @param operator Who is updating the entity?
+   * @param transformFromEntity Function that transforms entity to other object which fits the updateMask
+   * @param transformToEntity Function that transforms the object transformed by `transformFromEntity` back to entity
    * @returns Updated entity
    */
-  async createUpdateQuery (
+  async createUpdateQuery <T extends any>(
     uniqueKeyConditions: Record<UniqueKeys, any>,
     partialEntity: Partial<Entity>,
     updateMask: string[],
     allowedMask: string[],
     operator: string,
-    transformFromEntity: (entity: Partial<Entity>) => any = (entity) => entity,
-    transformToEntity: (object: any) => Entity = (entity) => entity,
+    transformFromEntity: (entity: Partial<Entity>) => Partial<T> = (entity) => entity as any,
+    transformToEntity: (object: T) => Entity = (entity) => entity as Entity,
   ): Promise<Entity> {
     // Check if exists
     const existingEntity = await this.createGetQuery(uniqueKeyConditions)
@@ -199,7 +201,7 @@ export class JamcaaHelper<
       this.options.onNothingUpdatedError()
     }
 
-    const entityToUpdate: Entity = transformToEntity(transformedExistingEntity)
+    const entityToUpdate: Entity = transformToEntity(transformedExistingEntity as T)
 
     // Data version
     if (this.options.dataVersion) {
