@@ -10,6 +10,7 @@ export const DEFAULT_JAMCAA_OPTIONS: IJamcaaHelperOptions = {
   dataVersion: true,
   dataVersionField: 'dataVersion',
   dataVersionType: 'string',
+  validateDataVersion: true,
   hasOperator: true,
   creatorField: 'creator',
   updaterField: 'updater',
@@ -25,6 +26,9 @@ export const DEFAULT_JAMCAA_OPTIONS: IJamcaaHelperOptions = {
   },
   onDisallowedUpdateMaskError: (disallowedMask) => {
     throw new BadRequestException(`${disallowedMask.join(', ')} cannot be updated!`)
+  },
+  onConflictOccursError: () => {
+    throw new BadRequestException('Conflict occurs!')
   },
   onNothingUpdatedError: () => {
     throw new BadRequestException('Nothing updated!')

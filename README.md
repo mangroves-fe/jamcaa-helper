@@ -204,27 +204,29 @@ export class SomeService {
 
 # Constructor Options
 
-| Option                      | Type                                | Default             | Description                                                       |
-| :-------------------------- | :---------------------------------- | :------------------ | :---------------------------------------------------------------- |
-| maxUnspecifiedPageSize      | number                              | 100                 | Max page size if it is not specified                              |
-| softDelete                  | boolean                             | true                | Whether soft delete feature should be applied                     |
-| softDeleteField             | string                              | 'deleteStatus'      | Soft delete column field                                          |
-| softDeleteEnum              | [undeleted: any, deleted: any]      | [0, 1]              | The values to mark if record is deleted                           |
-| reuseSoftDeletedData        | boolean                             | true                | Whether to reuse soft deleted data                                |
-| dataVersion                 | boolean                             | true                | Whether to increase data version column on update                 |
-| dataVersionField            | string                              | 'dataVersion'       | Data version column field                                         |
-| dataVersionType             | 'string' or 'number'                | 'string'            | Data version type                                                 |
-| hasOperator                 | boolean                             | true                | Whether there are creator and updater columns                     |
-| creatorField                | string                              | 'creator'           | Creator column field                                              |
-| updaterField                | string                              | 'updater'           | updater column field                                              |
-| hasTime                     | boolean                             | true                | Whether there are create_time and update_time columns             |
-| createTimeField             | string                              | 'createTime'        | Create time column field                                          |
-| updateTimeField             | string                              | 'updateTime'        | Update time column field                                          |
-| timePrecision               | 'ms' or 's'                         | 'ms'                | Store time column with the precision to millisecond or second     |
-| onEntityAlreadyExistsError  | (entityName: string) => never       | Throw 400 exception | To throw an exception when entity already exists                  |
-| onEntityNotFoundError       | (entityName: string) => never       | Throw 404 exception | To throw an exception when entity not found                       |
-| onDisallowedUpdateMaskError | (disallowedMask: string[]) => never | Throw 400 exception | To throw an exception when update_mask contains disallowed fields |
-| onNothingUpdatedError       | () => never                         | Throw 400 exception | To throw an exception when nothing updated                        |
+| Option                      | Type                                | Default             | Description                                                                   |
+| :-------------------------- | :---------------------------------- | :------------------ | :---------------------------------------------------------------------------- |
+| maxUnspecifiedPageSize      | number                              | 100                 | Max page size if it is not specified                                          |
+| softDelete                  | boolean                             | true                | Whether soft delete feature should be applied                                 |
+| softDeleteField             | string                              | 'deleteStatus'      | Soft delete column field                                                      |
+| softDeleteEnum              | [undeleted: any, deleted: any]      | [0, 1]              | The values to mark if record is deleted                                       |
+| reuseSoftDeletedData        | boolean                             | true                | Whether to reuse soft deleted data                                            |
+| dataVersion                 | boolean                             | true                | Whether to increase data version column on update                             |
+| dataVersionField            | string                              | 'dataVersion'       | Data version column field                                                     |
+| dataVersionType             | 'string' or 'number'                | 'string'            | Data version type                                                             |
+| validateDataVersion         | boolean                             | true                | Whether to validate data_version or not                                       |
+| hasOperator                 | boolean                             | true                | Whether there are creator and updater columns                                 |
+| creatorField                | string                              | 'creator'           | Creator column field                                                          |
+| updaterField                | string                              | 'updater'           | updater column field                                                          |
+| hasTime                     | boolean                             | true                | Whether there are create_time and update_time columns                         |
+| createTimeField             | string                              | 'createTime'        | Create time column field                                                      |
+| updateTimeField             | string                              | 'updateTime'        | Update time column field                                                      |
+| timePrecision               | 'ms' or 's'                         | 'ms'                | Store time column with the precision to millisecond or second                 |
+| onEntityAlreadyExistsError  | (entityName: string) => never       | Throw 400 exception | To throw an exception when entity already exists                              |
+| onEntityNotFoundError       | (entityName: string) => never       | Throw 404 exception | To throw an exception when entity not found                                   |
+| onDisallowedUpdateMaskError | (disallowedMask: string[]) => never | Throw 400 exception | To throw an exception when update_mask contains disallowed fields             |
+| onConflictOccursError       | () => never                         | Throw 400 exception | To throw an exception when data_version is not equal to the existing entity's |
+| onNothingUpdatedError       | () => never                         | Throw 400 exception | To throw an exception when nothing updated                                    |
 
 # Test
 

@@ -14,6 +14,7 @@ export interface IJamcaaHelperOptions<
   dataVersion: boolean
   dataVersionField: string
   dataVersionType: 'string' | 'number'
+  validateDataVersion: boolean
 
   /** Insert creator and update updater automatically */
   hasOperator: boolean
@@ -30,12 +31,14 @@ export interface IJamcaaHelperOptions<
   timePrecision: 'ms' | 's'
 
   // Events
-  /** Throw an HTTP exception instead */
+  /** Throw an exception when entity already exists */
   onEntityAlreadyExistsError: (entityName: string) => never
-  /** Throw an HTTP exception instead */
+  /** Throw an exception when entity not found  */
   onEntityNotFoundError: (entityName: string) => never
-  /** Throw an HTTP exception instead */
+  /** Throw an exception when update_mask contains disallowed fields */
   onDisallowedUpdateMaskError: (disallowedMask: string[]) => never
-  /** Throw an HTTP exception instead */
+  /** Throw an exception when data_version is not equal to the existing entity's, which means conflict occurs */
+  onConflictOccursError: () => never
+  /** Throw an exception when nothing updated */
   onNothingUpdatedError: () => never
 }
