@@ -91,42 +91,41 @@ export class JamcaaHelper<
     }
 
     // Create time and update time
+    let primaryColumnValue
+    let entityTimePart = {}
     if (this.options.hasTime) {
       const timeSql = this.getTimeSql()
-      const entityTimePart = {
+      entityTimePart = {
         [this.options.createTimeField]: () => timeSql,
         [this.options.updateTimeField]: () => timeSql,
       }
-      let primaryColumnValue
-      if (this.options.softDelete && this.options.reuseSoftDeletedData && existingEntity) {
-        primaryColumnValue = this.repository.getId(existingEntity)
-        await this.repository.update(
-          primaryColumnValue,
-          {
-            ...insertEntity,
-            ...entityTimePart,
-          },
-        )
-      } else {
-        const executionResult = await this.repository.createQueryBuilder()
-          .insert()
-          .into(this.repository.target)
-          .values({
-            ...insertEntity,
-            ...entityTimePart,
-          })
-          .execute()
-        primaryColumnValue = executionResult.identifiers[0]
-      }
-      const entity = await this.repository.findOne(primaryColumnValue)
-      if (!entity) {
-        throw new Error('[JamcaaHelper] Error finding inserted entity.')
-      }
-
-      return entity
+    }
+    if (this.options.softDelete && this.options.reuseSoftDeletedData && existingEntity) {
+      primaryColumnValue = this.repository.getId(existingEntity)
+      await this.repository.update(
+        primaryColumnValue,
+        {
+          ...insertEntity,
+          ...entityTimePart,
+        },
+      )
+    } else {
+      const executionResult = await this.repository.createQueryBuilder()
+        .insert()
+        .into(this.repository.target)
+        .values({
+          ...insertEntity,
+          ...entityTimePart,
+        })
+        .execute()
+      primaryColumnValue = executionResult.identifiers[0]
+    }
+    const entity = await this.repository.findOne(primaryColumnValue)
+    if (!entity) {
+      throw new Error('[JamcaaHelper] Error finding inserted entity.')
     }
 
-    return await this.repository.save(insertEntity)
+    return entity
   }
 
   /**
@@ -226,23 +225,22 @@ export class JamcaaHelper<
     }
 
     // Update time
+    let entityTimePart = {}
     if (this.options.hasTime) {
       const timeSql = this.getTimeSql()
-      const entityTimePart = {
+      entityTimePart = {
         [this.options.updateTimeField]: () => timeSql,
       }
-      const primaryColumnValue = this.repository.getId(entityToUpdate)
-      await this.repository.update(
-        primaryColumnValue,
-        {
-          ...entityToUpdate,
-          ...entityTimePart,
-        },
-      )
-      return await this.repository.findOne(primaryColumnValue) as Entity
     }
-
-    return await this.repository.save(entityToUpdate)
+    const primaryColumnValue = this.repository.getId(entityToUpdate)
+    await this.repository.update(
+      primaryColumnValue,
+      {
+        ...entityToUpdate,
+        ...entityTimePart,
+      },
+    )
+    return await this.repository.findOne(primaryColumnValue) as Entity
   }
 
   /**

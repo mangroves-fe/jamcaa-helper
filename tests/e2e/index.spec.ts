@@ -1,10 +1,10 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common'
 import { Connection, createConnection } from 'typeorm'
-import { JamcaaHelper } from '../src'
-import { TestEntity } from './testing-module/test.entity'
+import { JamcaaHelper } from '../../src'
+import { TestEntity } from '../testing-module/test.entity'
 
 jest.mock('@nestjs/common')
-// jest.mock('typeorm')
+jest.unmock('typeorm')
 
 const NOT_FOUND_EXCEPTION_MESSAGE = `${TestEntity.name} not found!`
 const ALREADY_EXISTS_EXCEPTION_MESSAGE = `${TestEntity.name} already exists!`

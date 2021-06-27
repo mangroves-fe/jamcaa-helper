@@ -6,7 +6,11 @@
   "types": "dist/types",
   "scripts": {
     "build": "rm -rf ./dist && rollup -c --configPlugin typescript",
-    "test": "jest --coverage",
+    "db": "docker run --platform linux/x86_64 --name jamcaa-mysql -e MYSQL_USER=jamcaa -e MYSQL_PASSWORD=jamcaa -e MYSQL_DATABASE=test -e MYSQL_ROOT_PASSWORD=root -p 6603:3306 -d mysql:5.7",
+    "db:destroy": "docker stop jamcaa-mysql && docker rm jamcaa-mysql",
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "jest --testPathPattern tests/unit/.*\\.spec\\.ts --coverage",
+    "test:e2e": "jest --testPathPattern tests/e2e/.*\\.spec\\.ts --coverage",
     "prepublishOnly": "npm run test && npm run build"
   },
   "keywords": [
