@@ -1,4 +1,4 @@
-# jamcaa-helper (饮茶小助手)
+# jamcaa-helper (饮茶小助手) ![Codecov](https://img.shields.io/codecov/c/github/mangroves-fe/jamcaa-helper)
 
 If you are using:
 
