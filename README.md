@@ -230,18 +230,36 @@ export class SomeService {
 
 # Test
 
+## unit
+
+```bash
+yarn test:unit
+```
+
+## e2e
+
 Real MySQL environment required.
 
-We run our test under real database running on Docker.
+We run e2e test with real database running on Docker.
 
 1. Install Docker
 2. Execute the following command to start a MySQL container
 
 ```bash
-docker run --platform linux/x86_64 --name jamcaa-mysql -e MYSQL_USER=jamcaa -e MYSQL_PASSWORD=jamcaa -e MYSQL_DATABASE=test -e MYSQL_ROOT_PASSWORD=root -p 6603:3306 -d mysql:5.7
+yarn db
 ```
 
-TODO: use Node script to start and remove MySQL container automatically
+Then execute
+
+```bash
+yarn test:e2e
+```
+
+After test run, use the following command to stop and remove MySQL container (Optional)
+
+```bash
+yarn db:destroy
+```
 
 # Caveat
 
