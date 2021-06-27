@@ -94,6 +94,50 @@ describe('Default options', () => {
     })
   })
 
+  describe('createListQuery', () => {
+    it('list correct entities', async () => {
+      const toBeInserted = [
+        {
+          firstName: 'Charlie',
+          lastName: 'Brown',
+        },
+        {
+          firstName: 'Snoppy',
+          lastName: 'Dog',
+        },
+        {
+          firstName: 'Charlie',
+          lastName: 'Gray',
+        },
+        {
+          firstName: 'Woodstock',
+          lastName: 'Bird',
+        },
+        {
+          firstName: 'Charlie',
+          lastName: 'Green',
+        },
+      ]
+      for (let i = 0; i < toBeInserted.length; i++) {
+        await helper.createInsertQuery(toBeInserted[i], operator)
+      }
+
+      const [entities, count] = await helper.createListQuery()
+        .filter((fq) => {
+          fq.equals('firstName', 'Charlie')
+        })
+        .paginationQuery(1, 2)
+        .getQueryBuilder()
+        .getManyAndCount()
+      
+      expect(count).toBe(3)
+      expect(Array.isArray(entities)).toBe(true)
+      expect(entities.length).toBe(2)
+      expect(entities[0]).toMatchObject(toBeInserted[0])
+      expect(entities[1]).toMatchObject(toBeInserted[2])
+    })
+  })
+
   describe('createGetQuery', () => {
     it('not found', async () => {
       await expect(helper.createGetQuery(uniqueKeyConditions)).rejects.toThrow(new NotFoundException(NOT_FOUND_EXCEPTION_MESSAGE))
@@ -163,6 +207,24 @@ describe('Default options', () => {
         allowedMask,
         operator,
       )).rejects.toThrow(new BadRequestException('lastName cannot be updated!'))
+    })
+
+    it('throw if data version error', async () => {
+      await helper.createInsertQuery(uniqueKeyConditions, operator)
+      const updateConditions = {
+        firstName: Math.random().toString(36),
+        lastName: Math.random().toString(36),
+        dataVersion: '0',
+      }
+      const mask = ['firstName', 'lastName']
+      const allowedMask = ['firstName', 'lastName']
+      await expect(helper.createUpdateQuery(
+        uniqueKeyConditions,
+        updateConditions,
+        mask,
+        allowedMask,
+        operator,
+      )).rejects.toThrow(new BadRequestException('Data version error!'))
     })
   })
 

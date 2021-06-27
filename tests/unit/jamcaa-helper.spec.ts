@@ -18,7 +18,7 @@ const timeSqlMilliSecond = 'UNIX_TIMESTAMP(CURRENT_TIMESTAMP(6))*1000'
 const NOT_FOUND_EXCEPTION_MESSAGE = `${TestEntity.name} not found!`
 const ALREADY_EXISTS_EXCEPTION_MESSAGE = `${TestEntity.name} already exists!`
 const DISALLOWED_UPDATE_MASK_EXCEPTION_MESSAGE = 'lastName cannot be updated!'
-const DATA_VERSION_CONFLICT_EXCEPTION_MESSAGE = 'Conflict occurs!'
+const DATA_VERSION_ERROR_EXCEPTION_MESSAGE = 'Data version error!'
 const NOTHING_UPDATED_EXCEPTION_MESSAGE = 'Nothing updated!'
 
 describe('Default options', () => {
@@ -190,7 +190,7 @@ describe('Default options', () => {
       await expect(helper.createUpdateQuery(uniqueKeyConditions, {
         ...updatePartialEntity,
         dataVersion: '0',
-      }, mask, mask, updateOperator)).rejects.toThrow(new BadRequestException(DATA_VERSION_CONFLICT_EXCEPTION_MESSAGE))
+      }, mask, mask, updateOperator)).rejects.toThrow(new BadRequestException(DATA_VERSION_ERROR_EXCEPTION_MESSAGE))
     })
 
     it('nothing updated', async () => {
