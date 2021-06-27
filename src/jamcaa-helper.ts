@@ -195,7 +195,7 @@ export class JamcaaHelper<
     // Validate data_version to avoid multiple editing conflicts
     if (this.options.dataVersion && this.options.validateDataVersion && partialEntity[this.options.dataVersionField]) {
       if (existingEntity[this.options.dataVersionField] !== partialEntity[this.options.dataVersionField]) {
-        this.options.onConflictOccursError()
+        this.options.onDataVersionError()
       }
     }
 

@@ -225,7 +225,7 @@ export class SomeService {
 | onEntityAlreadyExistsError  | (entityName: string) => never       | Throw 400 exception | To throw an exception when entity already exists                              |
 | onEntityNotFoundError       | (entityName: string) => never       | Throw 404 exception | To throw an exception when entity not found                                   |
 | onDisallowedUpdateMaskError | (disallowedMask: string[]) => never | Throw 400 exception | To throw an exception when update_mask contains disallowed fields             |
-| onConflictOccursError       | () => never                         | Throw 400 exception | To throw an exception when data_version is not equal to the existing entity's |
+| onDataVersionError          | () => never                         | Throw 400 exception | To throw an exception when data_version is not equal to the existing entity's |
 | onNothingUpdatedError       | () => never                         | Throw 400 exception | To throw an exception when nothing updated                                    |
 
 # Test

@@ -38,7 +38,7 @@ export interface IJamcaaHelperOptions<
   /** Throw an exception when update_mask contains disallowed fields */
   onDisallowedUpdateMaskError: (disallowedMask: string[]) => never
   /** Throw an exception when data_version is not equal to the existing entity's, which means conflict occurs */
-  onConflictOccursError: () => never
+  onDataVersionError: () => never
   /** Throw an exception when nothing updated */
   onNothingUpdatedError: () => never
 }

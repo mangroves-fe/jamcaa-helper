@@ -27,8 +27,8 @@ export const DEFAULT_JAMCAA_OPTIONS: IJamcaaHelperOptions = {
   onDisallowedUpdateMaskError: (disallowedMask) => {
     throw new BadRequestException(`${disallowedMask.join(', ')} cannot be updated!`)
   },
-  onConflictOccursError: () => {
-    throw new BadRequestException('Conflict occurs!')
+  onDataVersionError: () => {
+    throw new BadRequestException('Data version error!')
   },
   onNothingUpdatedError: () => {
     throw new BadRequestException('Nothing updated!')
