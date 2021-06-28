@@ -164,22 +164,22 @@ export class JamcaaHelper<
   /**
    * Update an entity with update_mask
    * @param uniqueKeyConditions Conditions that contain all unique keys
-   * @param partialEntity Update message passed by the client
+   * @param dto Update message passed by the client
    * @param updateMask FieldMask passed by the client
    * @param allowedMask Allowed FieldMask
    * @param operator Who is updating the entity?
-   * @param transformFromEntity Function that transforms entity to another object which fits updateMask
-   * @param transformToEntity Function that transforms the object transformed by `transformFromEntity` back to entity
+   * @param transformFromEntity Function that transforms entity to DTO object which fits updateMask
+   * @param transformToEntity Function that transforms the object transformed by `transformFromEntity` back to entity for saving
    * @returns Updated entity
    */
-  async createUpdateQuery <T extends any>(
+  async createUpdateQuery <DTO = any>(
     uniqueKeyConditions: Record<UniqueKeys, any>,
-    partialEntity: Partial<Entity>,
+    dto: DTO,
     updateMask: string[],
     allowedMask: string[],
     operator: string,
-    transformFromEntity: (entity: Partial<Entity>) => Partial<T> = (entity) => entity as any,
-    transformToEntity: (object: T) => Entity = (entity) => entity as Entity,
+    transformFromEntity: (entity: Entity) => DTO = (entity) => entity as unknown as DTO,
+    transformToEntity: (dto: DTO) => Partial<Entity> = (entity) => entity as unknown as Partial<Entity>,
   ): Promise<Entity> {
     // Check if exists
     const existingEntity = await this.createGetQuery(uniqueKeyConditions)
@@ -193,21 +193,23 @@ export class JamcaaHelper<
     }
 
     // Validate data_version to avoid multiple editing conflicts
-    if (this.options.dataVersion && this.options.validateDataVersion && partialEntity[this.options.dataVersionField]) {
-      if (existingEntity[this.options.dataVersionField] !== partialEntity[this.options.dataVersionField]) {
+    if (this.options.dataVersion && this.options.validateDataVersion) {
+      const transformedDTO = transformToEntity(dto)
+      const dtoDataVersion = transformedDTO[this.options.dataVersionField]
+      if (dtoDataVersion != null && existingEntity[this.options.dataVersionField] !== dtoDataVersion) {
         this.options.onDataVersionError()
       }
     }
 
     const transformedExistingEntity = transformFromEntity(existingEntity)
 
-    const updateCount = updateObjectByMask(transformedExistingEntity, transformFromEntity(partialEntity), filteredMask)
+    const updateCount = updateObjectByMask(transformedExistingEntity, dto, filteredMask)
 
     if (!updateCount) {
       this.options.onNothingUpdatedError()
     }
 
-    const entityToUpdate: Entity = transformToEntity(transformedExistingEntity as T)
+    const entityToUpdate: Partial<Entity> = transformToEntity(transformedExistingEntity)
 
     // Data version
     if (this.options.dataVersion) {
@@ -232,7 +234,7 @@ export class JamcaaHelper<
         [this.options.updateTimeField]: () => timeSql,
       }
     }
-    const primaryColumnValue = this.repository.getId(entityToUpdate)
+    const primaryColumnValue = this.repository.getId(existingEntity)
     await this.repository.update(
       primaryColumnValue,
       {
