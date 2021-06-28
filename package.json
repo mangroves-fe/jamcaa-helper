@@ -15,6 +15,7 @@
   },
   "keywords": [
     "jamcaa",
+    "nestjs",
     "typeorm",
     "crud",
     "mysql"
