@@ -13,6 +13,10 @@
     "test:e2e": "jest --testPathPattern tests/e2e/.*\\.spec\\.ts --coverage",
     "prepublishOnly": "npm run test && npm run build"
   },
+  "files": [
+    "src",
+    "dist"
+  ],
   "keywords": [
     "jamcaa",
     "nestjs",
@@ -20,6 +24,10 @@
     "crud",
     "mysql"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mangroves-fe/jamcaa-helper"
+  },
   "author": "mangroves-fe",
   "license": "MIT",
   "husky": {
