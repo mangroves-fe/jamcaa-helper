@@ -12,8 +12,6 @@ Then you can drink a cup of tea instead of spending time on writing CRUD code.
 
 # Installation
 
-(Not available yet)
-
 ```bash
 yarn add @mangroves/jamcaa-helper
 ```
@@ -162,15 +160,25 @@ export class SomeService {
 
   async update (id: string, dto: DTO, operator: string) {
     const uniqueKeyConditions = { id }
-    const updatePartialEntity = { column1: 'new value', column2: { deep: 'new value' } }
-    const updateMask = ['column1', 'column2.deep']
-    const allowedMask = ['column1', 'column2.deep']
+    const dto = { first_name: 'Charlie', person_info: { age: 12 } }
+    const updateMask = ['first_name', 'person_info.age']
+    const allowedMask = ['first_name', 'person_info']
+    const transformFromEntity = (entity) => ({
+      first_name: entity.firstName,
+      person_info: entity.personInfo,
+    })
+    const transformToEntity = (dto) => ({
+      firstName: dto.first_name,
+      personInfo: dto.person_info,
+    })
     const updatedEntity = await this.crudHelper.createUpdateQuery(
       uniqueKeyConditions,
-      updatePartialEntity,
+      dto,
       updateMask,
       allowedMask,
       operator,
+      transformFromEntity,
+      transformToEntity,
     )
     return getDTOFromEntity(updatedEntity)
   }
