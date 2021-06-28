@@ -8,6 +8,7 @@ jest.unmock('typeorm')
 
 const NOT_FOUND_EXCEPTION_MESSAGE = `${TestEntity.name} not found!`
 const ALREADY_EXISTS_EXCEPTION_MESSAGE = `${TestEntity.name} already exists!`
+const NOTHING_UPDATED_EXCEPTION_MESSAGE = 'Nothing updated!'
 
 let connection: Connection
 
@@ -31,6 +32,7 @@ beforeEach(async () => {
       id BIGINT UNSIGNED AUTO_INCREMENT,
       first_name VARCHAR(64) NOT NULL,
       last_name VARCHAR(64) NOT NULL,
+      person_info JSON DEFAULT NULL,
       data_version BIGINT UNSIGNED,
       delete_status TINYINT NOT NULL DEFAULT 0,
       creator VARCHAR(64),
@@ -245,6 +247,122 @@ describe('Default options', () => {
       expect(updatedEntity.firstName).toBe(updateConditions.firstName)
       expect(updatedEntity.lastName).toBeDefined()
       expect(updatedEntity.lastName).toBe(uniqueKeyConditions.lastName)
+    })
+
+    it('deep update', async () => {
+      await helper.createInsertQuery({
+        ...uniqueKeyConditions,
+        personInfo: {
+          age: 24,
+          hobbies: {
+            coffee: true,
+            tea: true,
+          },
+        },
+      }, operator)
+
+      const updateConditions = {
+        firstName: Math.random().toString(36),
+        personInfo: {
+          hobbies: {
+            coffee: false,
+          },
+        },
+      }
+      const mask = ['firstName', 'lastName', 'personInfo.hobbies.coffee']
+      const allowedMask = ['firstName', 'lastName', 'personInfo']
+      const updatedEntity = await helper.createUpdateQuery(
+        uniqueKeyConditions,
+        updateConditions,
+        mask,
+        allowedMask,
+        operator,
+      )
+
+      expect(updatedEntity.firstName).toBe(updateConditions.firstName)
+      expect(updatedEntity.lastName).toBeDefined()
+      expect(updatedEntity.lastName).toBe(uniqueKeyConditions.lastName)
+      expect(updatedEntity.personInfo?.hobbies?.coffee).toBe(false)
+      expect(updatedEntity.personInfo?.hobbies?.tea).toBe(true)
+    })
+
+    it('transform entity before updating', async () => {
+      await helper.createInsertQuery({
+        ...uniqueKeyConditions,
+        personInfo: {
+          age: 24,
+          hobbies: {
+            coffee: true,
+            tea: true,
+          },
+        },
+      }, operator)
+
+      const updateConditions = {
+        first_name: Math.random().toString(36),
+        person_info: {
+          hobbies: {
+            coffee: false,
+          },
+        } as Record<string, any> | null,
+        data_version: '1',
+      }
+      const mask = ['first_name', 'last_name', 'person_info.hobbies.coffee']
+      const allowedMask = ['first_name', 'last_name', 'person_info']
+      const updatedEntity = await helper.createUpdateQuery(
+        uniqueKeyConditions,
+        updateConditions,
+        mask,
+        allowedMask,
+        operator,
+        (entity) => ({
+          first_name: entity.firstName,
+          last_name: entity.lastName,
+          person_info: entity.personInfo,
+          data_version: entity.dataVersion,
+        }),
+        (dto) => ({
+          firstName: dto.first_name,
+          personInfo: dto.person_info,
+        }),
+      )
+
+      expect(updatedEntity.firstName).toBe(updateConditions.first_name)
+      expect(updatedEntity.lastName).toBeDefined()
+      expect(updatedEntity.lastName).toBe(uniqueKeyConditions.lastName)
+      expect(updatedEntity.personInfo?.hobbies?.coffee).toBe(false)
+      expect(updatedEntity.personInfo?.hobbies?.tea).toBe(true)
+    })
+
+    it('throw if nothing updated', async () => {
+      await helper.createInsertQuery({
+        ...uniqueKeyConditions,
+        personInfo: {
+          age: 24,
+          hobbies: {
+            coffee: true,
+            tea: true,
+          },
+        },
+      }, operator)
+
+      const updateConditions = {
+        firstName: uniqueKeyConditions.firstName,
+        personInfo: {
+          hobbies: {
+            coffee: true,
+          },
+        },
+      }
+      const mask = ['firstName', 'lastName', 'personInfo.hobbies.coffee']
+      const allowedMask = ['firstName', 'lastName', 'personInfo']
+      await expect(helper.createUpdateQuery(
+        uniqueKeyConditions,
+        updateConditions,
+        mask,
+        allowedMask,
+        operator,
+      )).rejects.toThrow(new BadRequestException(NOTHING_UPDATED_EXCEPTION_MESSAGE))
     })
   })
 

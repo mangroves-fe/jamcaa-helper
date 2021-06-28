@@ -12,6 +12,9 @@ export class TestEntity {
   @Column('varchar', { name: 'last_name' })
   lastName: string
 
+  @Column('json', { name: 'person_info' })
+  personInfo: Record<string, any> | null
+
   @Column('bigint', { name: 'data_version' })
   dataVersion: string
 
