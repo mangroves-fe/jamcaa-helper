@@ -226,6 +226,26 @@ describe('Default options', () => {
         operator,
       )).rejects.toThrow(new BadRequestException('Data version error!'))
     })
+
+    it('skip field when it is not in the partial entity but present in update mask', async () => {
+      await helper.createInsertQuery(uniqueKeyConditions, operator)
+      const updateConditions = {
+        firstName: Math.random().toString(36),
+      }
+      const mask = ['firstName', 'lastName']
+      const allowedMask = ['firstName', 'lastName']
+      const updatedEntity = await helper.createUpdateQuery(
+        uniqueKeyConditions,
+        updateConditions,
+        mask,
+        allowedMask,
+        operator,
+      )
+
+      expect(updatedEntity.firstName).toBe(updateConditions.firstName)
+      expect(updatedEntity.lastName).toBeDefined()
+      expect(updatedEntity.lastName).toBe(uniqueKeyConditions.lastName)
+    })
   })
 
   describe('createDeleteQuery', () => {
