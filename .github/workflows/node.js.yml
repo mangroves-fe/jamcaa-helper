@@ -25,9 +25,9 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node-version }}
-    - run: npm run db
-    - run: npm install
-    - run: npm test
-    - run: npm run db:destroy
+    - run: yarn db
+    - run: yarn install --frozen-lockfile
+    - run: yarn test
+    - run: yarn db:destroy
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
