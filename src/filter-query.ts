@@ -83,7 +83,9 @@ export class FilterQuery <Entity extends Record<string, any>> {
       const clause = fq.getClause()
       return clause ? `(${clause})` : ''
     }).filter(Boolean)
-    this.clauses.push(`(${clauses.join(` ${operator} `)})`)
+    if (clauses.length) {
+      this.clauses.push(`(${clauses.join(` ${operator} `)})`)
+    }
     return this
   }
  
@@ -100,7 +102,11 @@ export class FilterQuery <Entity extends Record<string, any>> {
   }
  
   getQueryBuilder (): SelectQueryBuilder<Entity> {
-    return this.queryBuilder.andWhere(this.getClause(), this.getParameters())
+    const clause = this.getClause()
+    if (clause) {
+      return this.queryBuilder.andWhere(clause, this.getParameters())
+    }
+    return this.queryBuilder
   }
  
   equals (field: keyof Entity, value: QueryValue): this {
