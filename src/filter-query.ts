@@ -80,8 +80,9 @@ export class FilterQuery <Entity extends Record<string, any>> {
         ...this.parameters,
         ...fq.getParameters(),
       }
-      return `(${fq.getClause()})`
-    })
+      const clause = fq.getClause()
+      return clause ? `(${clause})` : ''
+    }).filter(Boolean)
     this.clauses.push(`(${clauses.join(` ${operator} `)})`)
     return this
   }
