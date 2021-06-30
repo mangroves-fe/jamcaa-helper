@@ -151,6 +151,8 @@ export class SomeService {
 
 ### Example
 
+Note: If you want to validate data_version, you must transform it in `transformToEntity`.
+
 ```typescript
 import { JamcaaHelper } from '@mangroves/jamcaa-helper'
 
@@ -160,7 +162,7 @@ export class SomeService {
 
   async update (id: string, dto: DTO, operator: string) {
     const uniqueKeyConditions = { id }
-    const dto = { first_name: 'Charlie', person_info: { age: 12 } }
+    const dto = { first_name: 'Charlie', person_info: { age: 12 }, data_version: '1' }
     const updateMask = ['first_name', 'person_info.age']
     const allowedMask = ['first_name', 'person_info']
     const transformFromEntity = (entity) => ({
@@ -170,6 +172,8 @@ export class SomeService {
     const transformToEntity = (dto) => ({
       firstName: dto.first_name,
       personInfo: dto.person_info,
+      // Transform data_version if you want to validate it.
+      dataVersion: dto.data_version,
     })
     const updatedEntity = await this.crudHelper.createUpdateQuery(
       uniqueKeyConditions,
