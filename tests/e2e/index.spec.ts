@@ -364,6 +364,28 @@ describe('Default options', () => {
         operator,
       )).rejects.toThrow(new BadRequestException(NOTHING_UPDATED_EXCEPTION_MESSAGE))
     })
+
+    it('increase data version correctly if it is not transformed by transformFromEntity and transformToEntity', async () => {
+      await helper.createInsertQuery(uniqueKeyConditions, operator)
+      const mask = ['person_info']
+      const allowedMask = mask
+      const newOperator = 'new operator'
+      let updatedEntity
+      for (let i = 0; i < 5; i++) {
+        updatedEntity = await helper.createUpdateQuery(
+          uniqueKeyConditions,
+          {
+            person_info: {},
+          },
+          mask,
+          allowedMask,
+          newOperator,
+          (entity) => ({ person_info: entity.personInfo }),
+          (dto) => ({ personInfo: dto.person_info }),
+        )
+      }
+      expect(updatedEntity.dataVersion).toBe('6')
+    })
   })
 
   describe('createDeleteQuery', () => {

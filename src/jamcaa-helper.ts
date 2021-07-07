@@ -213,7 +213,7 @@ export class JamcaaHelper<
 
     // Data version
     if (this.options.dataVersion) {
-      const previousVersion = entityToUpdate[this.options.dataVersionField]
+      const previousVersion = existingEntity[this.options.dataVersionField]
       const nextVersion = isNaN(previousVersion) ? 2 : Number(previousVersion) + 1
       entityToUpdate[this.options.dataVersionField] = this.options.dataVersionType === 'number' ? nextVersion : nextVersion.toString()
     }
