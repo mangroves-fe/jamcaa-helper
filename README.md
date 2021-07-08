@@ -22,13 +22,17 @@ yarn add @mangroves/jamcaa-helper
 
 ```typescript
 import { JamcaaHelper } from '@mangroves/jamcaa-helper'
+import { InjectRepository } from '@nestjs/typeorm'
+import { Entity } from './entity.ts'
 
 @Injectable()
 export class SomeService {
   private readonly crudHelper = new JamcaaHelper(SomeEntity, 'entityUniqueKey' /** , options, connectionName */)
 
   constructor (
-    private readonly someInjected: InjectedType,
+    // You may need to inject repository if you get a `RepositoryNotFoundError`
+    @InjectRepository(Entity)
+    private readonly repository: Repository<Entity>,
   ) {}
 }
 ```
