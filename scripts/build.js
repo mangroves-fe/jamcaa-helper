@@ -3,7 +3,7 @@ const path = require('path')
 const execa = require('execa')
 
 const distDir = path.resolve(process.cwd(), 'dist')
-const typesDir = path.resolve(process.cwd(), require('../package.json').types)
+const typesDir = path.resolve(process.cwd(), 'dist/types')
 
 run()
 
