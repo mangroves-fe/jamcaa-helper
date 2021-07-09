@@ -1,6 +1,7 @@
 # jamcaa-helper (饮茶小助手)
 
 [![codecov](https://codecov.io/gh/mangroves-fe/jamcaa-helper/branch/main/graph/badge.svg?token=4U48I7S9QR)](https://codecov.io/gh/mangroves-fe/jamcaa-helper)
+[![Node.js CI](https://github.com/mangroves-fe/jamcaa-helper/actions/workflows/node.js.yml/badge.svg?branch=main)](https://github.com/mangroves-fe/jamcaa-helper/actions/workflows/node.js.yml)
 
 If you are using:
 
