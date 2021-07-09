@@ -1,5 +1,19 @@
+/**
+ * @public
+ */
+export type SingleQueryValue = undefined | null | string | number
+
+/**
+ * @public
+ */
+export type QueryValue = SingleQueryValue | SingleQueryValue[]
+
+/**
+ * @public
+ */
 export interface IJamcaaHelperOptions<
-  ExtraField extends string = string
+  Entity extends Record<string & ExtraField, any> = Record<string, any>,
+  ExtraField extends keyof Entity = keyof Entity,
 > {
   /** To prevent from querying too many rows from DB */
   maxUnspecifiedPageSize: number
@@ -12,7 +26,7 @@ export interface IJamcaaHelperOptions<
   reuseSoftDeletedData: boolean
 
   dataVersion: boolean
-  dataVersionField: string
+  dataVersionField: ExtraField
   dataVersionType: 'string' | 'number'
   validateDataVersion: boolean
 

@@ -7,13 +7,15 @@
 
 import { SelectQueryBuilder } from 'typeorm'
 import { createFilterQuery, FilterQuery } from './filter-query'
- 
-type SingleQueryValue = undefined | null | string | number
- 
+import { SingleQueryValue } from './interfaces'
+
+/**
+ * @public
+ */
 export class ListQuery <Entity extends Record<string, any>> {
   private alias: string
 
-  private showDeleted: boolean
+  private showDeleted: boolean | undefined
 
   private pageNumber: SingleQueryValue
 

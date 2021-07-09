@@ -384,7 +384,7 @@ describe('Default options', () => {
           (dto) => ({ personInfo: dto.person_info }),
         )
       }
-      expect(updatedEntity.dataVersion).toBe('6')
+      expect(updatedEntity?.dataVersion).toBe('6')
     })
   })
 

@@ -6,10 +6,12 @@
  */
 
 import { SelectQueryBuilder } from 'typeorm'
+import { QueryValue, SingleQueryValue } from './interfaces'
 
-type SingleQueryValue = undefined | null | string | number
-type QueryValue = SingleQueryValue | SingleQueryValue[]
-type CombinationParameter<Entity> = (fq: FilterQuery<Entity>) => void
+/**
+ * @public
+ */
+export type CombinationParameter<Entity> = (fq: FilterQuery<Entity>) => void
 
 enum FILTER_TYPE {
   EQUAL = 'IN',
@@ -32,6 +34,9 @@ const transformValueToArray = (value: QueryValue) => {
   }
 }
  
+/**
+ * @public
+ */
 export class FilterQuery <Entity extends Record<string, any>> {
   private alias: string
  
@@ -157,7 +162,12 @@ export class FilterQuery <Entity extends Record<string, any>> {
     return this.combineFilterQuery('OR', ...callbacks)
   }
 }
- 
+
+/**
+ * @public
+ * @param queryBuilder - QueryBuilder
+ * @returns FilterQuery instance
+ */
 export const createFilterQuery = <Entity extends Record<string, any>>(queryBuilder: SelectQueryBuilder<Entity>): FilterQuery<Entity> => {
   return new FilterQuery(queryBuilder)
 }

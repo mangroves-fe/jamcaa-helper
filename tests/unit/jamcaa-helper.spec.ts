@@ -1,8 +1,7 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common'
 import { TestEntity } from '../testing-module/test.entity'
 import { getRepository, mockFn } from '../../__mocks__/typeorm'
-import { JamcaaHelper } from '../../src/jamcaa-helper'
-import { ListQuery } from '../../src/list-query'
+import { JamcaaHelper, ListQuery } from '../../src'
 
 jest.mock('typeorm')
 
@@ -131,7 +130,7 @@ describe('Default options', () => {
     const updateOperator = 'update operator'
 
     const generatedId = 'id'
-    let existingEntity
+    let existingEntity: TestEntity
 
     beforeEach(() => {
       existingEntity = new TestEntity()

@@ -4,6 +4,9 @@ import { DEFAULT_JAMCAA_OPTIONS } from './constants'
 import { IJamcaaHelperOptions } from './interfaces'
 import { ListQuery } from './list-query'
 
+/**
+ * @public
+ */
 export class JamcaaHelper<
   Entity extends Record<string & ExtraField, any>,
   UniqueKeys extends keyof Entity,
@@ -13,14 +16,14 @@ export class JamcaaHelper<
 
   private readonly uniqueKeys: UniqueKeys[]
 
-  private readonly options: IJamcaaHelperOptions<ExtraField>
+  private readonly options: IJamcaaHelperOptions<Entity, ExtraField>
 
   private readonly entityName: string
 
   constructor (
     entity: EntityTarget<Entity>,
     uniqueKeys: UniqueKeys | UniqueKeys[],
-    options?: Partial<IJamcaaHelperOptions<ExtraField>>,
+    options?: Partial<IJamcaaHelperOptions<Entity, ExtraField>>,
     connectionName?: string,
   ) {
     this.repository = getRepository(entity, connectionName)
@@ -43,8 +46,8 @@ export class JamcaaHelper<
 
   /**
    * Create an entity or reuse a soft deleted entity and insert it into database
-   * @param partialEntity What is the entity made of?
-   * @param operator Who is creating this entity?
+   * @param partialEntity - What is the entity made of?
+   * @param operator - Who is creating this entity?
    * @returns Inserted entity
    */
   async createInsertQuery (
@@ -70,15 +73,14 @@ export class JamcaaHelper<
     // If soft deleted data should be reused
     const insertEntity = this.options.softDelete && this.options.reuseSoftDeletedData && existingEntity ? existingEntity : this.repository.create()
     for (const key in partialEntity) {
-      const value = partialEntity[key]
-      insertEntity[key] = value
+      insertEntity[key as keyof Entity] = partialEntity[key as keyof Entity] as any
     }
     if (this.options.softDelete && this.options.reuseSoftDeletedData) {
       insertEntity[this.options.softDeleteField] = this.options.softDeleteEnum[0]
     }
 
     if (this.options.dataVersion) {
-      insertEntity[this.options.dataVersionField] = this.options.dataVersionType === 'number' ? 1 : '1'
+      insertEntity[this.options.dataVersionField] = (this.options.dataVersionType === 'number' ? 1 : '1') as any
     }
 
     // Operator
@@ -130,7 +132,7 @@ export class JamcaaHelper<
 
   /**
    * List entities
-   * @param showDeleted Whether to show deleted data. Only valid when soft delete is enabled
+   * @param showDeleted - Whether to show deleted data. Only valid when soft delete is enabled
    * @returns ListQuery instance. Try `listQuery.getQueryBuilder()` to get the `SelectQueryBuilder`
    */
   createListQuery (showDeleted?: boolean): ListQuery<Entity> {
@@ -149,8 +151,8 @@ export class JamcaaHelper<
 
   /**
    * Get one entity
-   * @param uniqueKeyConditions Conditions that contain all unique keys
-   * @param showDeleted Whether to show deleted data. Only valid when soft delete is enabled
+   * @param uniqueKeyConditions - Conditions that contain all unique keys
+   * @param showDeleted - Whether to show deleted data. Only valid when soft delete is enabled
    * @returns Entity
    */
   async createGetQuery (uniqueKeyConditions: Record<UniqueKeys, any>, showDeleted?: boolean): Promise<Entity> {
@@ -163,13 +165,13 @@ export class JamcaaHelper<
 
   /**
    * Update an entity with update_mask
-   * @param uniqueKeyConditions Conditions that contain all unique keys
-   * @param dto Update message passed by the client
-   * @param updateMask FieldMask passed by the client
-   * @param allowedMask Allowed FieldMask
-   * @param operator Who is updating the entity?
-   * @param transformFromEntity Function that transforms entity to DTO object which fits updateMask
-   * @param transformToEntity Function that transforms the object transformed by `transformFromEntity` back to entity for saving
+   * @param uniqueKeyConditions - Conditions that contain all unique keys
+   * @param dto - Update message passed by the client
+   * @param updateMask - FieldMask passed by the client
+   * @param allowedMask - Allowed FieldMask
+   * @param operator - Who is updating the entity?
+   * @param transformFromEntity - Function that transforms entity to DTO object which fits updateMask
+   * @param transformToEntity - Function that transforms the object transformed by `transformFromEntity` back to entity for saving
    * @returns Updated entity
    */
   async createUpdateQuery <DTO = any>(
@@ -215,7 +217,7 @@ export class JamcaaHelper<
     if (this.options.dataVersion) {
       const previousVersion = existingEntity[this.options.dataVersionField]
       const nextVersion = isNaN(previousVersion) ? 2 : Number(previousVersion) + 1
-      entityToUpdate[this.options.dataVersionField] = this.options.dataVersionType === 'number' ? nextVersion : nextVersion.toString()
+      entityToUpdate[this.options.dataVersionField] = (this.options.dataVersionType === 'number' ? nextVersion : nextVersion.toString()) as any
     }
 
     // Operator
@@ -247,8 +249,8 @@ export class JamcaaHelper<
 
   /**
    * Delete an entity
-   * @param uniqueKeyConditions Conditions that contain all unique keys
-   * @param operator Who is deleting the entity
+   * @param uniqueKeyConditions - Conditions that contain all unique keys
+   * @param operator - Who is deleting the entity
    */
   async createDeleteQuery (
     uniqueKeyConditions: Record<UniqueKeys, any>,

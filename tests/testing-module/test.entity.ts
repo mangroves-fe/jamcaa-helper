@@ -4,32 +4,32 @@ import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm'
 @Entity('test')
 export class TestEntity {
   @PrimaryGeneratedColumn()
-  id: string
+  id!: string
 
   @Column('varchar', { name: 'first_name' })
-  firstName: string
+  firstName!: string
 
   @Column('varchar', { name: 'last_name' })
-  lastName: string
+  lastName!: string
 
   @Column('json', { name: 'person_info' })
-  personInfo: Record<string, any> | null
+  personInfo!: Record<string, any> | null
 
   @Column('bigint', { name: 'data_version' })
-  dataVersion: string
+  dataVersion!: string
 
   @Column('tinyint', { name: 'delete_status' })
-  deleteStatus: number
+  deleteStatus!: number
 
   @Column('varchar', { name: 'creator' })
-  creator: string
+  creator!: string
 
   @Column('varchar', { name: 'updater' })
-  updater: string
+  updater!: string
 
   @Column('varchar', { name: 'create_time' })
-  createTime: string
+  createTime!: string
 
   @Column('varchar', { name: 'update_time' })
-  updateTime: string
+  updateTime!: string
 }
