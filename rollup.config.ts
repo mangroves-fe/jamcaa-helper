@@ -15,7 +15,7 @@ export default defineConfig({
       declarationDir: 'dist/types',
       rootDir: './src',
       outDir: './dist',
-      exclude: ['**/*.spec.ts'],
+      exclude: ['tests/**/*.ts'],
     }),
     nodeResolve(),
     commonjs(),

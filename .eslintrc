@@ -34,5 +34,13 @@
     "@typescript-eslint/comma-spacing": ["warn", { "before": false, "after": true }],
     "@typescript-eslint/space-infix-ops": ["warn", { "int32Hint": false }],
     "@typescript-eslint/type-annotation-spacing": ["warn", { "overrides": { "colon": { "before": false, "after": true }, "arrow": { "before": true, "after": true } } }]
-  }
+  },
+  "overrides": [
+    {
+      "files": ["scripts/*.js"],
+      "rules": {
+        "@typescript-eslint/no-var-requires": "off"
+      }
+    }
+  ]
 }
