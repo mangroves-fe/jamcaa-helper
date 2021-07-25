@@ -138,6 +138,47 @@ describe('Default options', () => {
       expect(entities[0]).toMatchObject(toBeInserted[0])
       expect(entities[1]).toMatchObject(toBeInserted[2])
     })
+
+    it('list entities with max page size', async () => {
+      const toBeInserted = [
+        {
+          firstName: 'Charlie',
+          lastName: 'Brown',
+        },
+        {
+          firstName: 'Snoppy',
+          lastName: 'Dog',
+        },
+        {
+          firstName: 'Charlie',
+          lastName: 'Gray',
+        },
+        {
+          firstName: 'Woodstock',
+          lastName: 'Bird',
+        },
+        {
+          firstName: 'Charlie',
+          lastName: 'Green',
+        },
+      ]
+      const helperWithLimit = new JamcaaHelper(TestEntity, ['firstName', 'lastName'], { maxUnspecifiedPageSize: 3 })
+      for (let i = 0; i < toBeInserted.length; i++) {
+        await helper.createInsertQuery(toBeInserted[i], operator)
+      }
+
+      const [entities, count] = await helper.createListQuery()
+        .getQueryBuilder()
+        .getManyAndCount()
+      const [entitiesWithLimit, countWithLimit] = await helperWithLimit.createListQuery()
+        .getQueryBuilder()
+        .getManyAndCount()
+      
+      expect(count).toBe(countWithLimit)
+      expect(count).toBe(5)
+      expect(entities.length).toBe(5)
+      expect(entitiesWithLimit.length).toBe(3)
+    })
   })
 
   describe('createGetQuery', () => {
