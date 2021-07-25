@@ -657,10 +657,10 @@
     "@types/yargs" "^16.0.0"
     chalk "^4.0.0"
 
-"@mangroves/field-mask@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@mangroves/field-mask/-/field-mask-0.1.0.tgz#17f4f12237bc139dba9198ae516d33e2709763a2"
-  integrity sha512-PZhFz2bf7aXwNySfKu3neihkkzbjFrEMR/1T07fe4+8cCtn47IrQmVTnGm6b8i3KaGCtd+UTUmRqX0C7OmW5BQ==
+"@mangroves/field-mask@^0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@mangroves/field-mask/-/field-mask-0.1.1.tgz#b866a9e87cba92a773334180608674b5be7f017b"
+  integrity sha512-qDJc2Tfjy6hiCcoPfSUje0i3GxTT/1e+TzFfdULZBMnOQauZ70ntm/j4sLrFl8gst9psjnbTPXOkZIywDMhZzw==
 
 "@microsoft/api-extractor-model@7.13.3":
   version "7.13.3"

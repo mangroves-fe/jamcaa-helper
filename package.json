@@ -1,6 +1,6 @@
 {
   "name": "@mangroves/jamcaa-helper",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "",
   "main": "dist/index.js",
   "types": "index.d.ts",
@@ -60,6 +60,6 @@
     "typescript": "^4.3.2"
   },
   "dependencies": {
-    "@mangroves/field-mask": "^0.1.0"
+    "@mangroves/field-mask": "^0.1.1"
   }
 }
