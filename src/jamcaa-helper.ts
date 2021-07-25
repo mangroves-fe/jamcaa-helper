@@ -49,6 +49,9 @@ export class JamcaaHelper<
    * @param partialEntity - What is the entity made of?
    * @param operator - Who is creating this entity?
    * @returns Inserted entity
+   * 
+   * @throws {@link @nestjs/common#BadRequestException} 
+   * Throws if entity already exists
    */
   async createInsertQuery (
     partialEntity: Record<UniqueKeys, any> & Partial<Entity>,
@@ -154,6 +157,9 @@ export class JamcaaHelper<
    * @param uniqueKeyConditions - Conditions that contain all unique keys
    * @param showDeleted - Whether to show deleted data. Only valid when soft delete is enabled
    * @returns Entity
+   * 
+   * @throws {@link @nestjs/common#NotFoundException} 
+   * Throws if entity not found
    */
   async createGetQuery (uniqueKeyConditions: Record<UniqueKeys, any>, showDeleted?: boolean): Promise<Entity> {
     const existingEntity = await this.findOneEntity(uniqueKeyConditions, showDeleted)
@@ -173,6 +179,15 @@ export class JamcaaHelper<
    * @param transformFromEntity - Function that transforms entity to DTO object which fits updateMask
    * @param transformToEntity - Function that transforms the object transformed by `transformFromEntity` back to entity for saving
    * @returns Updated entity
+   * 
+   * @throws {@link @nestjs/common#NotFoundException} 
+   * Throws if entity not found
+   * 
+   * @throws {@link @nestjs/common#BadRequestException} 
+   * Throws if update mask contains disallowed fields
+   * 
+   * @throws {@link @nestjs/common#BadRequestException} 
+   * Throws if nothing updated
    */
   async createUpdateQuery <DTO = any>(
     uniqueKeyConditions: Record<UniqueKeys, any>,
@@ -251,6 +266,9 @@ export class JamcaaHelper<
    * Delete an entity
    * @param uniqueKeyConditions - Conditions that contain all unique keys
    * @param operator - Who is deleting the entity
+   * 
+   * @throws {@link @nestjs/common#NotFoundException} 
+   * Throws if entity not found
    */
   async createDeleteQuery (
     uniqueKeyConditions: Record<UniqueKeys, any>,
