@@ -16,7 +16,7 @@ export interface IJamcaaHelperOptions<
   ExtraField extends keyof Entity = keyof Entity,
 > {
   /** To prevent from querying too many rows from DB */
-  maxUnspecifiedPageSize: number
+  maxUnspecifiedPageSize: number | undefined
 
   /** Whether soft deleting is applied to this resource */
   softDelete: boolean

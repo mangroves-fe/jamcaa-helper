@@ -23,7 +23,7 @@ export class ListQuery <Entity extends Record<string, any>> {
  
   constructor (
     private queryBuilder: SelectQueryBuilder<Entity>,
-    private readonly maxUnspecifiedPageSize: number,
+    private readonly maxUnspecifiedPageSize: number | undefined,
     private readonly softDelete: boolean,
     private readonly softDeleteField: string,
     private readonly softDeleteEnum: [undeleted: any, deleted: any],
@@ -44,7 +44,7 @@ export class ListQuery <Entity extends Record<string, any>> {
 
   private addPaginationCondition () {
     let convertedPageNumber = 1
-    let convertedPageSize = this.maxUnspecifiedPageSize
+    let convertedPageSize = typeof this.maxUnspecifiedPageSize === 'number' ? this.maxUnspecifiedPageSize : NaN
     if (this.pageNumber != null && this.pageSize != null) {
       convertedPageNumber = Number(this.pageNumber)
       convertedPageSize = Number(this.pageSize)

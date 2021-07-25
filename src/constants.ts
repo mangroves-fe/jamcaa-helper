@@ -2,7 +2,7 @@ import { BadRequestException, NotFoundException } from '@nestjs/common'
 import { IJamcaaHelperOptions } from './interfaces'
 
 export const DEFAULT_JAMCAA_OPTIONS: IJamcaaHelperOptions = {
-  maxUnspecifiedPageSize: 100,
+  maxUnspecifiedPageSize: undefined,
   softDelete: true,
   softDeleteField: 'deleteStatus',
   softDeleteEnum: [0, 1],
