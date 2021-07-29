@@ -225,7 +225,7 @@ export class SomeService {
 
 | Option                      | Type                                | Default             | Description                                                                   |
 | :-------------------------- | :---------------------------------- | :------------------ | :---------------------------------------------------------------------------- |
-| maxUnspecifiedPageSize      | number                              | 100                 | Max page size if it is not specified                                          |
+| maxUnspecifiedPageSize      | number or undefined                 | undefined           | Max page size if it is not specified                                          |
 | softDelete                  | boolean                             | true                | Whether soft delete feature should be applied                                 |
 | softDeleteField             | string                              | 'deleteStatus'      | Soft delete column field                                                      |
 | softDeleteEnum              | [undeleted: any, deleted: any]      | [0, 1]              | The values to mark if record is deleted                                       |
