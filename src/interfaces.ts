@@ -46,7 +46,7 @@ export interface IJamcaaHelperOptions<
 
   // Events
   /** Throw an exception when entity already exists */
-  onEntityAlreadyExistsError: (entityName: string) => never
+  onEntityAlreadyExistsError: (entityName: string, entity: Entity) => never
   /** Throw an exception when entity not found  */
   onEntityNotFoundError: (entityName: string) => never
   /** Throw an exception when update_mask contains disallowed fields */
