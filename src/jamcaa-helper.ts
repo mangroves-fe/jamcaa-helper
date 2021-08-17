@@ -65,11 +65,18 @@ export class JamcaaHelper<
         uniqueKeyConditions[key] = partialEntity[key]
       })
       existingEntity = await this.findOneEntity(uniqueKeyConditions, true)
-      if (
-        (this.options.softDelete && existingEntity && existingEntity[this.options.softDeleteField] === this.options.softDeleteEnum[0]) ||
-      (!this.options.softDelete && existingEntity)
-      ) {
-        this.options.onEntityAlreadyExistsError(this.entityName)
+      let shouldThrowAlreadyExists = false
+      if (existingEntity) {
+        if (this.options.softDelete) {
+          // If data will not be reused, then the entity should not exist in the database.
+          shouldThrowAlreadyExists = !this.options.reuseSoftDeletedData || existingEntity[this.options.softDeleteField] === this.options.softDeleteEnum[0]
+        } else {
+          // No soft delete feature but the entity exists
+          shouldThrowAlreadyExists = true
+        }
+      }
+      if (shouldThrowAlreadyExists) {
+        this.options.onEntityAlreadyExistsError(this.entityName, existingEntity as Entity)
       }
     }
 
