@@ -6,7 +6,7 @@
   "types": "index.d.ts",
   "scripts": {
     "build": "node ./scripts/build.js",
-    "test": "npm run test:unit && npm run test:e2e",
+    "test": "jest --coverage --runInBand",
     "test:unit": "jest --testPathPattern tests/unit/.*\\.spec\\.ts --coverage --runInBand",
     "test:e2e": "jest --testPathPattern tests/e2e/.*\\.spec\\.ts --coverage --runInBand",
     "prepublishOnly": "npm run test && npm run build"
