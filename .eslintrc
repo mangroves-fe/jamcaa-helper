@@ -37,7 +37,7 @@
   },
   "overrides": [
     {
-      "files": ["scripts/*.js"],
+      "files": ["scripts/*.js", "jest-docker-mysql-config.js"],
       "rules": {
         "@typescript-eslint/no-var-requires": "off"
       }
